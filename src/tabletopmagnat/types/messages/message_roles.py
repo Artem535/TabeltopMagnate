@@ -5,3 +5,4 @@ class MessageRoles(StrEnum):
     ASSISTANT = "assistant"
     USER = "user"
     SYSTEM = "system"
+    TOOL = "tool"

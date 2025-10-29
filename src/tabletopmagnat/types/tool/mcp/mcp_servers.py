@@ -1,5 +1,7 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+from tabletopmagnat.types.tool.mcp.mcp_server import MCPServer
 
 
-class MCPServer(BaseModel):
-    mcp_server: str
+class MCPServers(BaseModel):
+    mcp_server: dict[str, MCPServer] = Field(default_factory=dict, alias="mcpServers")

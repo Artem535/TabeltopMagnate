@@ -60,3 +60,6 @@ class Dialog(BaseModel):
 
 
         raise TypeError(f"Cannot add {type(other)} to Dialog")
+
+    def get_last_message(self):
+        return self.messages[-1] if self.messages and len(self.messages) else None

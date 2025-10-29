@@ -1,13 +1,20 @@
-from langfuse import Langfuse
 from uuid import uuid4
+
+from langfuse import Langfuse
+from pocketflow import AsyncFlow
+
 from tabletopmagnat.config.config import Config
+from tabletopmagnat.node.debug_node import DebugNode
 from tabletopmagnat.node.task_classifier import TaskClassifier
+from tabletopmagnat.node.tool_node import ToolNode
 from tabletopmagnat.services.openai_service import OpenAIService
-from tabletopmagnat.state.private_state import PrivateState
+from tabletopmagnat.types.dialog import Dialog
 from tabletopmagnat.types.messages import UserMessage
+from tabletopmagnat.types.tool import ToolHeader
+from tabletopmagnat.types.tool.mcp import MCPServer, MCPServers, MCPTools
 
 
-class Application():
+class Application:
     def __init__(self):
         self.config = Config()
         self.langfuse = Langfuse(
@@ -15,6 +22,7 @@ class Application():
             public_key=self.config.langfuse.public_key,
             secret_key=self.config.langfuse.secret_key,
         )
+
         # Service
         self.llm = OpenAIService(self.config.openai)
 
@@ -22,10 +30,33 @@ class Application():
         self.task_classifier = TaskClassifier(self.llm, 1, 0)
 
         # Data
-        self.shared_data = PrivateState()
+        self.shared_data = {"dialog": Dialog()}
 
-    def run(self):
-        with self.langfuse.start_as_current_span(name=f"Span:{uuid4()}") as span:
-            span.update(input="Привет!")
-            self.shared_data.dialog.add_message(UserMessage(content="Привет!"))
-            self.task_classifier.run(self.shared_data)
+        header = ToolHeader(Authorization="Bearer 1234567890")
+        server = MCPServer(
+            transport="http",
+            url="http://localhost:8000/mcp",
+            headers=header,
+            auth="bearer",
+        )
+        mcp_servers = MCPServers(mcpServers={"mcp": server})
+        self.tools = MCPTools(mcp_servers)
+
+        self.tool_node = ToolNode(self.tools)
+
+        self.final_node = DebugNode()
+
+    async def run(self):
+        msg = "Сложи два числа через интсурмент: 0919283848, 32819384482"
+        self.llm.add_mcp_tools(await self.tools.get_openai_tools())
+        with (self.langfuse.start_as_current_span(name=f"Span:{uuid4()}") as span):
+            span.update(input=msg)
+            self.shared_data["dialog"].add_message(UserMessage(content=msg))
+
+            self.task_classifier - "tools" >> self.tool_node
+            self.task_classifier - "default" >> self.final_node
+            self.tool_node >> self.task_classifier
+
+            flow = AsyncFlow(start=self.task_classifier)
+
+            await flow.run_async(shared=self.shared_data)

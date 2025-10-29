@@ -9,6 +9,8 @@ wheels/
 # venv
 .venv
 
+.env
+
 # Don't track
 *.dt
 *.dt.*

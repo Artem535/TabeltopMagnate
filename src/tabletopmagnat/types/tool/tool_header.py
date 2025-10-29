@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 
 class ToolHeader(BaseModel):
-    authorization: str = Field(title="Authorization")
+    authorization: str = Field(default="empty_token", alias="Authorization")
 
-    def add_auth(self, token: str):
+    def set_auth(self, token: str):
         self.authorization = f"Bearer {token}"
