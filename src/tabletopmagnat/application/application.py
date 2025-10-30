@@ -15,7 +15,21 @@ from tabletopmagnat.types.tool.mcp import MCPServer, MCPServers, MCPTools
 
 
 class Application:
+    """Main application class that orchestrates nodes and tools to process user input using LLM and external APIs.
+
+    Attributes:
+        config (Config): Configuration object loaded from the application's config module.
+        langfuse (Langfuse): Langfuse client for observability and tracing.
+        llm (OpenAIService): Language model service used for message generation.
+        task_classifier (TaskClassifier | None): Node responsible for classifying tasks based on input.
+        tool_node (ToolNode | None): Node responsible for invoking external tools.
+        final_node (DebugNode | None): Final node for logging or debugging output.
+        flow (AsyncFlow | None): Asynchronous workflow composed of connected nodes.
+        shared_data (dict[str, Any]): Shared context between nodes, containing the dialog history.
+    """
+
     def __init__(self):
+        """Initialize the Application with configuration, services, and placeholder nodes."""
         self.config = Config()
         self.langfuse = Langfuse(
             host=self.config.langfuse.host,
@@ -27,11 +41,36 @@ class Application:
         self.llm = OpenAIService(self.config.openai)
 
         # Nodes
-        self.task_classifier = TaskClassifier(self.llm, 1, 0)
+        self.task_classifier: TaskClassifier | None = None
+        self.tool_node: ToolNode | None = None
+        self.final_node: DebugNode | None = None
+        # Flow
+        self.flow: AsyncFlow | None = None
 
         # Data
         self.shared_data = {"dialog": Dialog()}
 
+    async def init_nodes(self):
+        """Initialize application nodes if they have not been created yet.
+
+        This method lazily initializes the `task_classifier`, `tool_node`, and `final_node` by calling their respective
+        factory methods. Each node is initialized only once.
+        """
+        if self.task_classifier is None:
+            self.task_classifier = await self.get_task_classifier_node(self.llm)
+
+        if self.tool_node is None:
+            self.tool_node = await self.get_tool_node()
+
+        if self.final_node is None:
+            self.final_node = DebugNode()
+
+    def get_tools(self):
+        """Construct and return a set of external tools (e.g., MCP API).
+
+        Returns:
+            MCPTools: A collection of external tools configured for use in the application.
+        """
         header = ToolHeader(Authorization="Bearer 1234567890")
         server = MCPServer(
             transport="http",
@@ -40,23 +79,68 @@ class Application:
             auth="bearer",
         )
         mcp_servers = MCPServers(mcpServers={"mcp": server})
-        self.tools = MCPTools(mcp_servers)
+        return MCPTools(mcp_servers)
 
-        self.tool_node = ToolNode(self.tools)
+    async def get_task_classifier_node(self, llm: OpenAIService):
+        """Create and configure a TaskClassifier node.
 
-        self.final_node = DebugNode()
+        Args:
+            llm (OpenAIService): The language model service used by the classifier.
+
+        Returns:
+            TaskClassifier: A configured task classifier node bound to available tools.
+        """
+        tools = self.get_tools()
+        task_classifier = TaskClassifier(llm, 1, 0)
+        task_classifier.bind_tools(await tools.get_openai_tools())
+        return task_classifier
+
+    async def get_tool_node(self):
+        """Create and configure a ToolNode.
+
+        Returns:
+            ToolNode: A configured tool node ready to invoke external tools.
+        """
+        tools = self.get_tools()
+        _ = await tools.get_openai_tools()
+        return ToolNode(tools)
+
+    def connect_nodes(self):
+        """Connect the nodes into a workflow.
+
+        This method defines the data flow between the task classifier, tool node, and final debug node.
+        """
+        self.task_classifier - "tools" >> self.tool_node
+        self.task_classifier - "default" >> self.final_node
+        self.tool_node >> self.task_classifier
+
+    async def init_flow(self):
+        """Initialize the workflow by setting up nodes and connecting them.
+
+        This method ensures all necessary nodes are initialized and then connects them into an `AsyncFlow`.
+        """
+        await self.init_nodes()
+        self.connect_nodes()
+        self.flow = AsyncFlow(start=self.task_classifier)
 
     async def run(self):
+        """Run the application workflow with a sample user message.
+
+        This method adds a user message to the dialog, initializes the workflow if it hasn't been created yet,
+        and executes the workflow asynchronously. It also logs the input and output using Langfuse.
+        """
         msg = "Сложи два числа через интсурмент: 0919283848, 32819384482"
-        self.llm.add_mcp_tools(await self.tools.get_openai_tools())
-        with (self.langfuse.start_as_current_span(name=f"Span:{uuid4()}") as span):
-            span.update(input=msg)
-            self.shared_data["dialog"].add_message(UserMessage(content=msg))
 
-            self.task_classifier - "tools" >> self.tool_node
-            self.task_classifier - "default" >> self.final_node
-            self.tool_node >> self.task_classifier
+        dialog = self.shared_data["dialog"]
+        dialog.add_message(UserMessage(content=msg))
 
-            flow = AsyncFlow(start=self.task_classifier)
+        if self.flow is None:
+            await self.init_flow()
 
-            await flow.run_async(shared=self.shared_data)
+        with self.langfuse.start_as_current_span(name=f"Span:{uuid4()}") as span:
+            span.update(input=dialog)
+
+            await self.flow.run_async(shared=self.shared_data)
+
+            last_msg = dialog.get_last_message()
+            span.update(output=dialog.get_last_message())

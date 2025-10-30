@@ -37,6 +37,7 @@ from tabletopmagnat.types.messages import (
     AiMessage,
     SystemMessage,
 )
+from tabletopmagnat.types.tool.openai_tool_params import OpenAIToolParams
 
 
 class LLMNode(AsyncNode, ABC):
@@ -63,6 +64,9 @@ class LLMNode(AsyncNode, ABC):
         super().__init__(max_retries=max_retries, wait=wait)
         self.llm = llm_service
         self.lf_client: Langfuse = get_client()
+
+    def bind_tools(self, tools: list[OpenAIToolParams]):
+        self.llm.add_mcp_tools(tools)
 
     @abstractmethod
     @observe(name="llm_node:prompt")

@@ -1,6 +1,7 @@
 import json
 
 from icecream import ic
+from langfuse import observe
 from pocketflow import AsyncNode
 
 from tabletopmagnat.types.dialog import Dialog
@@ -14,6 +15,7 @@ class ToolNode(AsyncNode):
         super().__init__(max_retires, wait)
         self._mcp_tool = mcp_tool
 
+    @observe(name="Tool_node:preparation", as_type="tool")
     async def prep_async(self, shared):
         # TODO: Add check if last_msg is not None
         last_msg: AiMessage = shared["dialog"].get_last_message()
@@ -22,6 +24,7 @@ class ToolNode(AsyncNode):
         )
         return tool_calls
 
+    @observe(name="Tool_node:execution", as_type="tool")
     async def exec_async(self, prep_res):
         tool_calls: list[ToolMessage] = prep_res
 
@@ -37,6 +40,7 @@ class ToolNode(AsyncNode):
 
         return tool_calls
 
+    @observe(name="Tool_node:postprocessing", as_type="tool")
     async def post_async(self, shared, prep_res, exec_res):
         tool_calls: list[ToolMessage] = exec_res
         dialog: Dialog = shared["dialog"]

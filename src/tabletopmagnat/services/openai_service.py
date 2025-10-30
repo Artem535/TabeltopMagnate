@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from langfuse.openai import OpenAI
 from openai.types.chat import (
     ChatCompletion,
@@ -13,11 +15,17 @@ from tabletopmagnat.types.tool.openai_tool_params import OpenAIToolParams
 class OpenAIService:
     def __init__(self, model_config: OpenAIConfig) -> None:
         self.tools: list[OpenAIToolParams] = []
+        self.config = model_config
         self.model: str = model_config.model
         self.client = OpenAI(
             api_key=model_config.api_key,
             base_url=model_config.base_url,
         )
+
+    def __deepcopy__(self, memo: dict[int, object] | None = None) -> object:
+        new_instance = self.__class__(deepcopy(self.config, memo))
+        memo[id(self)] = new_instance
+        return new_instance
 
     def add_mcp_tool(self, tool: OpenAIToolParams) -> None:
         if tool not in self.tools:
