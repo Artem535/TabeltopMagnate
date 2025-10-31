@@ -13,6 +13,7 @@ Classes:
 
 from typing import override
 
+from openai.types.chat import ChatCompletionMessageFunctionToolCall
 from pydantic import Field
 
 from tabletopmagnat.types.messages.base_message import BaseMessage
@@ -32,7 +33,8 @@ class AiMessage(BaseMessage):
     """
 
     role: MessageRoles = MessageRoles.ASSISTANT
-    tool_calls: list[ToolMessage] = Field(exclude=True, default_factory=list)
+    tool_calls: list[ChatCompletionMessageFunctionToolCall] | None = Field(default=None)
+    internal_tools: list[ToolMessage] = Field(exclude=True, default_factory=list)
 
     @override
     def to_dict(self):
@@ -42,4 +44,4 @@ class AiMessage(BaseMessage):
         Returns:
             dict: A dictionary with 'role' and 'content' keys.
         """
-        return {"role": str(self.role.value), "content": self.content}
+        return {"role": str(self.role.value), "content": self.content, "tool_calls": self.tool_calls}

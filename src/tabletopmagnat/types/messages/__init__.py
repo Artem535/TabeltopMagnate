@@ -18,5 +18,6 @@ from tabletopmagnat.types.messages.message_roles import MessageRoles
 from tabletopmagnat.types.messages.ai_messages import AiMessage
 from tabletopmagnat.types.messages.user_messages import UserMessage
 from tabletopmagnat.types.messages.system_messages import SystemMessage
+from tabletopmagnat.types.messages.developer_messages import DeveloperMessage
 
-__all__ = ["BaseMessage", "MessageRoles", "AiMessage", "UserMessage", "SystemMessage"]
+__all__ = ["BaseMessage", "MessageRoles", "AiMessage", "UserMessage", "SystemMessage", "DeveloperMessage"]

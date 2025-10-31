@@ -24,4 +24,6 @@ class OpenAIConfig(BaseSettings):
 
     api_key: str = ""
     base_url: str = ""
-    model: str = ""
+    security_model: str = ""
+    assistant_model: str = ""
+    general_model: str = ""

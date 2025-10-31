@@ -10,7 +10,8 @@ Classes:
 """
 
 from abc import ABC, abstractmethod
-from pydantic import BaseModel
+
+from pydantic import BaseModel, Field
 
 
 class BaseMessage(BaseModel, ABC):
@@ -26,6 +27,7 @@ class BaseMessage(BaseModel, ABC):
     """
 
     content: str
+    metadata: dict | None = Field(default=None, exclude=True)
 
     @abstractmethod
     def to_dict(self):

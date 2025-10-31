@@ -10,7 +10,7 @@ from tabletopmagnat.types.messages.tool_message import ToolMessage
 from tabletopmagnat.types.tool.mcp import MCPTools
 
 
-class ToolNode(AsyncNode):
+class MCPToolNode(AsyncNode):
     def __init__(self, mcp_tool: MCPTools, max_retires: int = 1, wait: float = 0):
         super().__init__(max_retires, wait)
         self._mcp_tool = mcp_tool
@@ -20,7 +20,7 @@ class ToolNode(AsyncNode):
         # TODO: Add check if last_msg is not None
         last_msg: AiMessage = shared["dialog"].get_last_message()
         tool_calls: list[ToolMessage] = (
-            last_msg.tool_calls if last_msg.tool_calls is not None else []
+            last_msg.internal_tools if last_msg.internal_tools is not None else []
         )
         return tool_calls
 

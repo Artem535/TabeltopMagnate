@@ -112,7 +112,7 @@ class LLMNode(AsyncNode, ABC):
         """
         dialog = Dialog(messages=[self.get_prompt()])
         dialog += prepared_prep
-        result: AiMessage = self.llm.generate(dialog)
+        result: AiMessage = await self.llm.generate(dialog)
         return result
 
     @override

@@ -6,9 +6,9 @@ from tabletopmagnat.node.llm_node import LLMNode
 from tabletopmagnat.types.messages import SystemMessage
 
 
-class TaskClassifier(LLMNode):
+class SecurityNode(LLMNode):
     @override
-    @observe(name="task_classifier:get_prompt")
+    @observe(name="Security:get_prompt", as_type="guardrail")
     def get_prompt(self) -> SystemMessage:
-        prompt = self.lf_client.get_prompt("task_classifier")
+        prompt = self.lf_client.get_prompt("security")
         return SystemMessage(content=prompt.prompt)
