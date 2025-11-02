@@ -9,13 +9,14 @@ from tabletopmagnat.types.messages import DeveloperMessage, SystemMessage
 
 class TaskClassifier(LLMNode):
     @override
-    @observe(name="task_classifier:get_prompt")
+    @observe(name="TaskClassifier:get_prompt")
     def get_prompt(self) -> DeveloperMessage:
-        prompt = self.lf_client.get_prompt("task_classifier")
+        self._lf_client.update_current_span(name=f"{self._name}:get_prompt")
+        prompt = self._lf_client.get_prompt("task_classifier")
         return SystemMessage(content=prompt.prompt)
 
     @override
-    @observe(name="task_classifier:postprocessing")
+    @observe(name="TaskClassifier:post", as_type="chain")
     async def post_async(self, shared, prep_res, exec_res):
         """Handles post-processing after execution.
 
@@ -29,6 +30,8 @@ class TaskClassifier(LLMNode):
         Returns:
             str: A default return value ("default") indicating completion.
         """
+        self._lf_client.update_current_span(name=f"{self._name}:post")
+
         ic("TaskClassifier:post| exec_res:", exec_res)
         msg: AiMessage = exec_res
         dialog: Dialog = shared["dialog"]

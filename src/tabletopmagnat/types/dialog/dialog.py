@@ -63,3 +63,14 @@ class Dialog(BaseModel):
 
     def get_last_message(self):
         return self.messages[-1] if self.messages and len(self.messages) else None
+
+    def pop_last_message(self):
+        return self.messages.pop() if self.messages and len(self.messages) else None
+
+    def replace_last_message(self, message: BaseMessage):
+        if self.messages:
+            self.messages[-1] = message
+        else:
+            self.messages = [message]
+
+        return None

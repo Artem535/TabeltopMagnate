@@ -6,9 +6,10 @@ from pocketflow import AsyncFlow
 from tabletopmagnat.config.config import Config
 from tabletopmagnat.node.assistant_node import AssistantNode
 from tabletopmagnat.node.debug_node import DebugNode
-from tabletopmagnat.node.empty_user_node import EmptyUserNode
+from tabletopmagnat.node.echo_node import EchoNode
 from tabletopmagnat.node.mcp_tool_node import MCPToolNode
 from tabletopmagnat.node.security_llm_node import SecurityNode
+from tabletopmagnat.node.summary_node import SummaryNode
 from tabletopmagnat.node.task_classifier_node import TaskClassifier
 from tabletopmagnat.services.openai_service import OpenAIService
 from tabletopmagnat.structured_output.task_classifier import TaskClassifierOutput
@@ -55,11 +56,13 @@ class Application:
         # Nodes
         self.assistant_node: AssistantNode | None = None
         self.task_classifier: TaskClassifier | None = None
-        self.tool_node: MCPToolNode | None = None
+        # self.tool_node: MCPToolNode | None = None
         self.debug_node: DebugNode | None = None
         self.security_node: SecurityNode | None = None
-        self.empty_node1: EmptyUserNode | None = None
-        self.empty_node2: EmptyUserNode | None = None
+        self.summary_node1: SummaryNode | None = None
+        self.summary_node2: SummaryNode | None = None
+        self.summary_node3: SummaryNode | None = None
+        self.echo_node: EchoNode | None = None
 
         # Flow
         self.flow: AsyncFlow | None = None
@@ -74,7 +77,7 @@ class Application:
         factory methods. Each node is initialized only once.
         """
         if self.assistant_node is None:
-            self.assistant_node = AssistantNode(self.assistant_llm)
+            self.assistant_node = AssistantNode("assistant", self.assistant_llm)
 
         if self.task_classifier is None:
             self.task_classifier_llm.bind_structured(TaskClassifierOutput)
@@ -82,20 +85,26 @@ class Application:
                 self.task_classifier_llm
             )
 
-        if self.tool_node is None:
-            self.tool_node = await self.get_tool_node()
+        # if self.tool_node is None:
+        #     self.tool_node = await self.get_tool_node()
 
         if self.debug_node is None:
             self.debug_node = DebugNode()
 
         if self.security_node is None:
-            self.security_node = SecurityNode(self.security_llm)
+            self.security_node = SecurityNode("security", self.security_llm)
 
-        if self.empty_node1 is None:
-            self.empty_node1 = EmptyUserNode()
+        if self.summary_node1 is None:
+            self.summary_node1 = SummaryNode("SummaryNode1")
 
-        if self.empty_node2 is None:
-            self.empty_node2 = EmptyUserNode()
+        if self.summary_node2 is None:
+            self.summary_node2 = SummaryNode("SummaryNode2")
+
+        if self.summary_node3 is None:
+            self.summary_node3 = SummaryNode("SummaryNode3")
+
+        if self.echo_node is None:
+            self.echo_node = EchoNode("EchoNode")
 
     def get_tools(self):
         """Construct and return a set of external tools (e.g., MCP API).
@@ -123,7 +132,7 @@ class Application:
             TaskClassifier: A configured task classifier node bound to available tools.
         """
         # tools = self.get_tools()
-        task_classifier = TaskClassifier(llm, 1, 0)
+        task_classifier = TaskClassifier("task_classifier", llm, 1, 0)
         # task_classifier.bind_tools(await tools.get_openai_tools())
         return task_classifier
 
@@ -135,7 +144,7 @@ class Application:
         """
         tools = self.get_tools()
         _ = await tools.get_openai_tools()
-        return MCPToolNode(tools)
+        return MCPToolNode(tools, name="tool")
 
     def connect_nodes(self):
         """Connect the nodes into a workflow.
@@ -143,15 +152,17 @@ class Application:
         This method defines the data flow between the task classifier, tool node, and final debug node.
         """
         (
-            self.task_classifier
-            >> self.empty_node1
+            self.task_classifier - "search"
+            >> self.summary_node1
+            >> self.echo_node
+            >> self.summary_node2
             >> self.security_node
-            >> self.empty_node2
+            >> self.summary_node3
             >> self.assistant_node
         )
 
-        self.task_classifier - "adding" >> self.debug_node
-        self.task_classifier - "search" >> self.debug_node
+        self.task_classifier - "adding" >> self.debug_node >> self.assistant_node
+        # self.task_classifier - "search" >> self.debug_node
 
     async def init_flow(self):
         """Initialize the workflow by setting up nodes and connecting them.
@@ -168,7 +179,7 @@ class Application:
         This method adds a user message to the dialog, initializes the workflow if it hasn't been created yet,
         and executes the workflow asynchronously. It also logs the input and output using Langfuse.
         """
-        msg = "Как сварить яица"
+        msg = "Расскажи правила игры ChronoGarden"
 
         dialog = self.shared_data["dialog"]
         dialog.add_message(UserMessage(content=msg))
