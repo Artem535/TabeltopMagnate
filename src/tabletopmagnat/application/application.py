@@ -6,6 +6,7 @@ from pocketflow import AsyncFlow
 from tabletopmagnat.config.config import Config
 from tabletopmagnat.node.assistant_node import AssistantNode
 from tabletopmagnat.node.debug_node import DebugNode
+from tabletopmagnat.node.docling_node import DoclingNode
 from tabletopmagnat.node.echo_node import EchoNode
 from tabletopmagnat.node.mcp_tool_node import MCPToolNode
 from tabletopmagnat.node.security_llm_node import SecurityNode
@@ -62,6 +63,7 @@ class Application:
         self.summary_node1: SummaryNode | None = None
         self.summary_node2: SummaryNode | None = None
         self.summary_node3: SummaryNode | None = None
+        self.docling_node: DoclingNode | None = None
         self.echo_node: EchoNode | None = None
 
         # Flow
@@ -105,6 +107,9 @@ class Application:
 
         if self.echo_node is None:
             self.echo_node = EchoNode("EchoNode")
+
+        if self.docling_node is None:
+            self.docling_node = DoclingNode("DoclingNode")
 
     def get_tools(self):
         """Construct and return a set of external tools (e.g., MCP API).
@@ -161,7 +166,11 @@ class Application:
             >> self.assistant_node
         )
 
-        self.task_classifier - "adding" >> self.debug_node >> self.assistant_node
+        (
+            self.task_classifier - "adding"
+            >> self.docling_node
+            >> self.debug_node
+        )
         # self.task_classifier - "search" >> self.debug_node
 
     async def init_flow(self):
@@ -179,7 +188,7 @@ class Application:
         This method adds a user message to the dialog, initializes the workflow if it hasn't been created yet,
         and executes the workflow asynchronously. It also logs the input and output using Langfuse.
         """
-        msg = "Расскажи правила игры ChronoGarden"
+        msg = "Добавь игру Ticket To Ride: https://hobbyworld.ru/download/rules/Exploding%20Kittens_Rules.pdf"
 
         dialog = self.shared_data["dialog"]
         dialog.add_message(UserMessage(content=msg))
