@@ -22,7 +22,7 @@ class DoclingNode(AbstractNode):
 
             )
         )
-        self._converter = converter = DocumentConverter(
+        self._converter = DocumentConverter(
             format_options={
                 InputFormat.PDF: PdfFormatOption(
                     pipeline_cls=VlmPipeline,

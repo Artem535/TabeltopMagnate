@@ -15,9 +15,7 @@ dependencies = [
     "blacksheep>=2.4.3",
     "fastmcp>=2.13.0.1",
     "icecream>=2.1.8",
-    "docling>=2.59.0",
-    "mlx-vlm>=0.3.5",
-    "vllm>=0.11.0",
+    "objectbox>=4.0.0",
 ]
 readme = "README.md"
 requires-python = ">= 3.10"

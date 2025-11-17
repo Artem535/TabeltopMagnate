@@ -57,7 +57,7 @@ class Application:
         # Nodes
         self.assistant_node: AssistantNode | None = None
         self.task_classifier: TaskClassifier | None = None
-        # self.tool_node: MCPToolNode | None = None
+        self.tool_node: MCPToolNode | None = None
         self.debug_node: DebugNode | None = None
         self.security_node: SecurityNode | None = None
         self.summary_node1: SummaryNode | None = None
@@ -87,8 +87,8 @@ class Application:
                 self.task_classifier_llm
             )
 
-        # if self.tool_node is None:
-        #     self.tool_node = await self.get_tool_node()
+        if self.tool_node is None:
+            self.tool_node = await self.get_tool_node()
 
         if self.debug_node is None:
             self.debug_node = DebugNode()
@@ -149,28 +149,27 @@ class Application:
         """
         tools = self.get_tools()
         _ = await tools.get_openai_tools()
-        return MCPToolNode(tools, name="tool")
+        return MCPToolNode(mcp_tool=tools, name="tool")
 
     def connect_nodes(self):
         """Connect the nodes into a workflow.
 
         This method defines the data flow between the task classifier, tool node, and final debug node.
         """
-        (
-            self.task_classifier - "search"
-            >> self.summary_node1
-            >> self.echo_node
-            >> self.summary_node2
-            >> self.security_node
-            >> self.summary_node3
-            >> self.assistant_node
-        )
 
-        (
-            self.task_classifier - "adding"
-            >> self.docling_node
-            >> self.debug_node
-        )
+        self.task_classifier - "search"
+        >> self.summary_node1
+        >> self.echo_node
+        >> self.summary_node2
+        >> self.security_node
+        >> self.summary_node3
+        >> self.assistant_node
+
+
+        self.task_classifier - "adding"
+        >> self.docling_node
+        >> self.debug_node
+
         # self.task_classifier - "search" >> self.debug_node
 
     async def init_flow(self):
@@ -182,12 +181,13 @@ class Application:
         self.connect_nodes()
         self.flow = AsyncFlow(start=self.task_classifier)
 
-    async def run(self):
+    async def run(self, msg = ""):
         """Run the application workflow with a sample user message.
 
         This method adds a user message to the dialog, initializes the workflow if it hasn't been created yet,
         and executes the workflow asynchronously. It also logs the input and output using Langfuse.
         """
+
         msg = "Добавь игру Ticket To Ride: https://hobbyworld.ru/download/rules/Exploding%20Kittens_Rules.pdf"
 
         dialog = self.shared_data["dialog"]
