@@ -17,6 +17,7 @@ Classes:
 from pydantic_settings import BaseSettings, SettingsConfigDict  # type: ignore
 
 from tabletopmagnat.config.langfuse import LangfuseSettings
+from tabletopmagnat.config.models import Models
 from tabletopmagnat.config.openai_config import OpenAIConfig
 
 
@@ -38,6 +39,6 @@ class Config(BaseSettings):
         env_file_encoding="utf-8",
         env_nested_delimiter="__"
     )
-
+    models: Models = Models()
     openai: OpenAIConfig = OpenAIConfig()
     langfuse: LangfuseSettings = LangfuseSettings()

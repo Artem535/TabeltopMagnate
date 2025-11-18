@@ -1,17 +1,16 @@
 from typing import override
 
-from icecream import ic
 from langfuse import observe
 
 from tabletopmagnat.node.llm_node import LLMNode
-from tabletopmagnat.types.messages import DeveloperMessage, SystemMessage
+from tabletopmagnat.types.messages import SystemMessage
 
 
 class AssistantNode(LLMNode):
 
     @override
     @observe(as_type="chain")
-    def get_prompt(self) -> DeveloperMessage:
+    def get_prompt(self) -> SystemMessage:
         name = f"{self._name}:get_prompt"
         self._lf_client.update_current_span(name=name)
 

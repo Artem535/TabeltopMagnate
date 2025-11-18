@@ -19,11 +19,7 @@ class OpenAIConfig(BaseSettings):
     Attributes:
         api_key (str): The API key used to authenticate with OpenAI services.
         base_url (str): The base URL of the OpenAI API endpoint.
-        model (str): The name or identifier of the model to be used with OpenAI.
     """
 
     api_key: str = ""
     base_url: str = ""
-    security_model: str = ""
-    assistant_model: str = ""
-    general_model: str = ""

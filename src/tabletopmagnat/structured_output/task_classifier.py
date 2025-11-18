@@ -4,13 +4,9 @@ from pydantic import BaseModel, Field
 
 
 class TaskClassifierOutput(BaseModel):
-    task: Literal["search", "adding", "default"] = Field(
+    task: Literal["search", "explanation", "clarification"] = Field(
         description="The task of the user. "
-        "Search -- search for tabletop inforamtion. "
-        "Adding -- add new data to the rag. Can be choosen only if user provide url to pdf file. "
-        "default -- if task is not clear. "
-    )
-    content: str = Field(
-        default="empty_content",
-        description="The content of the task. Can be a question or a url fro adding new data in rag.",
+        "search -- search for tabletop information in the web. "
+        "explanation -- explain the **FULL** rules of the tabletop game. Explanation will be from begin to end. "
+        "clarification -- ask for clarification on the rules of the tabletop game. Answer will be contains the 1-2 sentence. "
     )

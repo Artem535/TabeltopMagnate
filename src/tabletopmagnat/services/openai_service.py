@@ -27,7 +27,7 @@ class OpenAIService:
         self.structure = None
 
     def __deepcopy__(self, memo: dict[int, object] | None = None) -> object:
-        new_instance = self.__class__(deepcopy(self.config, memo))
+        new_instance = self.__class__(self.model, self.config)
         memo[id(self)] = new_instance
         return new_instance
 
@@ -45,7 +45,7 @@ class OpenAIService:
     async def generate(self, dialog: Dialog) -> AiMessage:
         openai_tools = [tool.model_dump(by_alias=True) for tool in self.tools]
 
-        response = None
+        response: ChatCompletion | None = None
         metadata = None
         content = ""
 

@@ -45,6 +45,8 @@ class MCPToolNode(AbstractNode):
 
         tool_calls: list[ToolMessage] = exec_res
         dialog: Dialog = shared["dialog"]
+
         for tool_call in tool_calls:
             dialog.add_message(tool_call)
+
         return "default"

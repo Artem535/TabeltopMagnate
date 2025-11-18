@@ -1,9 +1,7 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 
 from langfuse import get_client
-from pocketflow import AsyncNode
-
-from tabletopmagnat.types.messages import BaseMessage
+from tabletopmagnat.pocketflow import AsyncNode
 
 
 class AbstractNode(AsyncNode, ABC):

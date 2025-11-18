@@ -16,6 +16,7 @@ dependencies = [
     "fastmcp>=2.13.0.1",
     "icecream>=2.1.8",
     "objectbox>=4.0.0",
+    "chonkie>=1.4.2",
 ]
 readme = "README.md"
 requires-python = ">= 3.10"

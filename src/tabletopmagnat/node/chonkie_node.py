@@ -1,3 +1,6 @@
+"""
+
+"""
 from chonkie import MarkdownChef, MarkdownDocument
 
 from tabletopmagnat.node.abstract_node import AbstractNode
@@ -18,10 +21,10 @@ class ChonkieNode(AbstractNode):
 
     async def post_async(self, shared, prep_res, exec_res):
         document: MarkdownDocument = exec_res
-        original_documnet = shared["document"]
+        original_document = shared["document"]
 
         for chunk in document.chunks:
-            chunk.text = original_documnet["title"]
+            chunk.text = original_document["title"]
 
         shared["chunks"] = exec_res
         return "default"
