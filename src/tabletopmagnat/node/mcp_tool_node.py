@@ -22,7 +22,7 @@ class MCPToolNode(AbstractNode):
         name = f"{self._name}:prep"
         self._lf_client.update_current_span(name=name)
 
-        last_msg: AiMessage = shared["dialog"].get_last_message()
+        last_msg: AiMessage = shared.dialog.get_last_message()
         return last_msg.internal_tools or []
 
     @observe(as_type="tool")
@@ -44,7 +44,7 @@ class MCPToolNode(AbstractNode):
         self._lf_client.update_current_span(name=name)
 
         tool_calls: list[ToolMessage] = exec_res
-        dialog: Dialog = shared["dialog"]
+        dialog: Dialog = shared.dialog
 
         for tool_call in tool_calls:
             dialog.add_message(tool_call)

@@ -17,6 +17,7 @@ from tabletopmagnat.state.private_state import PrivateState
 from tabletopmagnat.structured_output.security import SecurityOutput
 from tabletopmagnat.structured_output.task_classifier import TaskClassifierOutput
 from tabletopmagnat.structured_output.task_splitter import TaskSplitterOutput
+from tabletopmagnat.subgraphs.rags import RASG
 from tabletopmagnat.types.dialog import Dialog
 from tabletopmagnat.types.messages import UserMessage
 from tabletopmagnat.types.tool import ToolHeader
@@ -61,6 +62,9 @@ class Application:
             self.config.models.security_model, self.config.openai
         )
         self.security_llm.bind_structured(SecurityOutput)
+        # ---
+        # TODO: FIX TYPOS
+        self.rasg_llm = OpenAIService(self.config.models.rags_model, self.config.openai)
 
         # Nodes
         self.security_node: SecurityNode | None = None
@@ -88,9 +92,20 @@ class Application:
             name="security", llm_service=self.security_llm
         )
         self.echo_node = EchoNode(name="echo", echo_text="Sorry, but I can't help you.")
-        self.task_splitter_node = TaskSplitterNode(name="task_splitter", llm_service=self.task_splitter_llm)
+        self.task_splitter_node = TaskSplitterNode(
+            name="task_splitter", llm_service=self.task_splitter_llm
+        )
         self.task_classifier_node = TaskClassifierNode(
             name="task_classifier", llm_service=self.task_classifier_llm
+        )
+
+        tools = self.get_tools()
+        _ = await tools.get_tool_list()
+        self.expert_1 = await RASG.create_subgraph(
+            name="expert_1",
+            prompt_name="expert_1",
+            openai_service=self.rasg_llm,
+            mcp_tools=tools,
         )
 
     def get_tools(self):
@@ -118,6 +133,7 @@ class Application:
         self.security_node - "safe" >> self.task_classifier_node
 
         self.task_classifier_node - "explanation" >> self.task_splitter_node
+        self.task_splitter_node >> self.expert_1
 
     async def init_flow(self):
         """Initialize the workflow by setting up nodes and connecting them.
