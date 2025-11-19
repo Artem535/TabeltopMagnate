@@ -17,9 +17,10 @@ dependencies = [
     "icecream>=2.1.8",
     "objectbox>=4.0.0",
     "chonkie>=1.4.2",
+    "sentence-transformers>=5.1.2",
 ]
 readme = "README.md"
-requires-python = ">= 3.10"
+requires-python = "~= 3.13.0"
 
 [build-system]
 requires = ["hatchling"]
