@@ -1,0 +1,309 @@
+{
+  "entities": {
+    "game_title": {
+      "label": "GAME_TITLE",
+      "value": "ПОДЗЕМЕЛЬЯ ПЁСИКИ",
+      "context": "Название настольной игры",
+      "mentions": ["title", "throughout_document"]
+    },
+    "player_characters": {
+      "label": "CHARACTER",
+      "entities": [
+        {
+          "name": "Робин Гудгёрл",
+          "class": "Следопыт",
+          "ability": "Перепрыгивает все ловушки",
+          "first_mention": 77,
+          "mentions": [77, 253, 257]
+        },
+        {
+          "name": "Жанна Гавк",
+          "ability": "Один раз за раунд может потратить ещё один жетон, чтобы победить монстра (кроме дракона), на которого не хватает символов атаки",
+          "first_mention": 363,
+          "mentions": [305, 363]
+        },
+        {
+          "name": "Боньк Могучий",
+          "ability": "Может пробить дверь без ключа",
+          "mentions": [90, 339]
+        },
+        {
+          "name": "Плохиш Плуто",
+          "ability": "Имеет ключ с начала игры",
+          "mentions": [333, 339]
+        }
+      ]
+    },
+    "monsters": {
+      "label": "MONSTER",
+      "entities": [
+        {
+          "name": "Шоколадный голем",
+          "attack_requirements": ["золотые монеты", "синие щиты"],
+          "trophy": "ледяной кристалл",
+          "first_mention": 245,
+          "mentions": [245, 246, 247, 248, 249]
+        },
+        {
+          "name": "Мимик",
+          "attack_requirements": ["лук", "огненный шар"],
+          "trophy": "меч",
+          "first_mention": 260,
+          "mentions": [253, 260, 261]
+        },
+        {
+          "name": "Цербер",
+          "attack_requirements": ["3 меча"],
+          "first_mention": 262,
+          "mentions": [197, 255, 262]
+        },
+        {
+          "name": "Гигаклещ",
+          "first_mention": 123,
+          "mentions": [123, 126, 199]
+        },
+        {
+          "name": "Зомби-белка",
+          "trophy": "меч",
+          "first_mention": 305,
+          "mentions": [305]
+        },
+        {
+          "name": "Дракон",
+          "reward": "4 монеты вместо трофеев",
+          "first_mention": 226,
+          "mentions": [123, 126, 226]
+        },
+        {
+          "name": "Стрекоключ",
+          "trophy": "ключ",
+          "first_mention": 226,
+          "mentions": [226, 333]
+        },
+        {
+          "name": "Ифрит",
+          "first_mention": 382,
+          "mentions": [382]
+        }
+      ]
+    },
+    "quests": {
+      "label": "QUEST",
+      "entities": [
+        {
+          "name": "Стальная хватка",
+          "type": "трофейный",
+          "description": "Собрать больше всех указанных трофейных символов",
+          "first_mention": 99,
+          "mentions": [99, 384]
+        },
+        {
+          "name": "Огонь в сердце",
+          "type": "трофейный",
+          "description": "Собрать больше всех указанных трофейных символов",
+          "first_mention": 99,
+          "mentions": [99, 384]
+        },
+        {
+          "name": "В яблочко",
+          "type": "трофейный",
+          "description": "Собрать больше всех указанных трофейных символов",
+          "first_mention": 99,
+          "mentions": [99, 384]
+        },
+        {
+          "name": "Последнее желание",
+          "type": "монстровский",
+          "description": "Победить указанных монстров (ифритов)",
+          "first_mention": 382,
+          "mentions": [382]
+        }
+      ]
+    },
+    "game_elements": {
+      "label": "GAME_ELEMENT",
+      "entities": [
+        {
+          "name": "карты комнат",
+          "type": "component",
+          "quantity": 90,
+          "mentions": [22, 119, 136, 185, 350, 357]
+        },
+        {
+          "name": "планшеты пёсиков",
+          "type": "component",
+          "quantity": 6,
+          "mentions": [23, 38, 75, 361]
+        },
+        {
+          "name": "карты квестов",
+          "type": "component",
+          "quantity": 12,
+          "mentions": [24, 42, 43, 44, 46, 47, 99, 350]
+        },
+        {
+          "name": "карты зелий",
+          "type": "component",
+          "quantity": 6,
+          "mentions": [25, 65, 97, 336, 357]
+        },
+        {
+          "name": "жетоны лапок",
+          "type": "component",
+          "quantity": 42,
+          "mentions": [26, 40, 86, 90, 91, 95, 212, 271, 276, 315, 332, 336]
+        },
+        {
+          "name": "жетоны раундов",
+          "type": "component",
+          "quantity": 3,
+          "mentions": [28, 57, 350, 357]
+        },
+        {
+          "name": "жетон первого игрока",
+          "type": "component",
+          "mentions": [29, 69, 350]
+        }
+      ]
+    },
+    "symbols": {
+      "label": "SYMBOL",
+      "entities": [
+        {
+          "name": "меч",
+          "type": "attack_symbol",
+          "mentions": [79, 224, 255, 280, 305]
+        },
+        {
+          "name": "лук",
+          "type": "attack_symbol",
+          "mentions": [79, 253, 280]
+        },
+        {
+          "name": "огненный шар",
+          "type": "attack_symbol",
+          "mentions": [79, 253, 280]
+        },
+        {
+          "name": "щит",
+          "type": "attack_symbol",
+          "mentions": [79, 224, 280]
+        },
+        {
+          "name": "ледяной кристалл",
+          "type": "defense_symbol",
+          "mentions": [248, 249]
+        },
+        {
+          "name": "золотая монета",
+          "type": "attack_symbol",
+          "mentions": [246, 247, 271, 272]
+        },
+        {
+          "name": "синий щит",
+          "type": "attack_symbol",
+          "mentions": [247, 271]
+        }
+      ]
+    },
+    "locations": {
+      "label": "LOCATION",
+      "entities": [
+        {
+          "name": "подземелье",
+          "type": "game_area",
+          "mentions": ["throughout_document"]
+        },
+        {
+          "name": "стартовая комната",
+          "type": "special_room",
+          "mentions": [49, 140, 350]
+        },
+        {
+          "name": "выход из подземелья",
+          "type": "game_element",
+          "mentions": [120, 134, 140, 158]
+        }
+      ]
+    }
+  },
+  "relationships": {
+    "character_abilities": [
+      {
+        "character": "Робин Гудгёрл",
+        "ability": "перепрыгивание ловушек",
+        "affects": ["ловушки"]
+      },
+      {
+        "character": "Жанна Гавк",
+        "ability": "дополнительный жетон для победы над монстром",
+        "affects": ["монстры"]
+      },
+      {
+        "character": "Боньк Могучий",
+        "ability": "проход через двери без ключа",
+        "affects": ["двери"]
+      },
+      {
+        "character": "Плохиш Плуто",
+        "ability": "ключ с начала игры",
+        "affects": ["двери", "сундуки"]
+      }
+    ],
+    "monster_trophies": [
+      {
+        "monster": "Мимик",
+        "trophy": "меч",
+        "used_by": ["Дана в примере"]
+      },
+      {
+        "monster": "Зомби-белка",
+        "trophy": "меч",
+        "used_by": ["Лена в примере"]
+      },
+      {
+        "monster": "Стрекоключ",
+        "trophy": "ключ",
+        "enables": ["двери", "сундуки"]
+      }
+    ],
+    "quest_requirements": [
+      {
+        "quest": "Стальная хватка",
+        "requires": "трофейные символы",
+        "competition": "между игроками"
+      },
+      {
+        "quest": "Огонь в сердце",
+        "requires": "трофейные символы",
+        "competition": "между игроками"
+      },
+      {
+        "quest": "В яблочко",
+        "requires": "трофейные символы",
+        "competition": "между игроками"
+      },
+      {
+        "quest": "Последнее желание",
+        "requires": "победа над ифритами",
+        "stackable": "да, за каждого побеждённого"
+      }
+    ]
+  },
+  "statistics": {
+    "total_entities": {
+      "characters": 4,
+      "monsters": 8,
+      "quests": 4,
+      "game_elements": 7,
+      "symbols": 7,
+      "locations": 3
+    },
+    "entity_distribution": {
+      "combat_related": 12,
+      "resource_related": 8,
+      "quest_related": 4,
+      "special_abilities": 4
+    }
+  }
+}
