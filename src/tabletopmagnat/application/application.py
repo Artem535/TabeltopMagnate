@@ -3,22 +3,17 @@ from uuid import uuid4
 from langfuse import Langfuse
 
 from tabletopmagnat.config.config import Config
+from tabletopmagnat.node.echo_node import EchoNode
+from tabletopmagnat.node.security_llm_node import SecurityNode
+from tabletopmagnat.node.task_classifier_node import TaskClassifierNode
 from tabletopmagnat.node.task_splitter_node import TaskSplitterNode
 from tabletopmagnat.pocketflow import AsyncFlow
-from tabletopmagnat.node.assistant_node import AssistantNode
-from tabletopmagnat.node.debug_node import DebugNode
-from tabletopmagnat.node.echo_node import EchoNode
-from tabletopmagnat.node.mcp_tool_node import MCPToolNode
-from tabletopmagnat.node.security_llm_node import SecurityNode
-from tabletopmagnat.node.summary_node import SummaryNode
-from tabletopmagnat.node.task_classifier_node import TaskClassifierNode
 from tabletopmagnat.services.openai_service import OpenAIService
 from tabletopmagnat.state.private_state import PrivateState
 from tabletopmagnat.structured_output.security import SecurityOutput
 from tabletopmagnat.structured_output.task_classifier import TaskClassifierOutput
 from tabletopmagnat.structured_output.task_splitter import TaskSplitterOutput
 from tabletopmagnat.subgraphs.rags import RASG
-from tabletopmagnat.types.dialog import Dialog
 from tabletopmagnat.types.messages import UserMessage
 from tabletopmagnat.types.tool import ToolHeader
 from tabletopmagnat.types.tool.mcp import MCPServer, MCPServers, MCPTools
@@ -30,7 +25,7 @@ class Application:
     Attributes:
         config (Config): Configuration object loaded from the application's config module.
         langfuse (Langfuse): Langfuse client for observability and tracing.
-        llm (OpenAIService): Language model service used for message generation.
+        _llm (OpenAIService): Language model service used for message generation.
         task_classifier (TaskClassifierNode | None): Node responsible for classifying tasks based on input.
         tool_node (MCPToolNode | None): Node responsible for invoking external tools.
         debug_node (DebugNode | None): Final node for logging or debugging output.
@@ -89,14 +84,26 @@ class Application:
         factory methods. Each node is initialized only once.
         """
         self.security_node = SecurityNode(
-            name="security", llm_service=self.security_llm
+            name="security",
+            llm_service=self.security_llm,
+            prompt_name="security",
+            dialog_selector=lambda x: x.dialog,
         )
+
         self.echo_node = EchoNode(name="echo", echo_text="Sorry, but I can't help you.")
+
         self.task_splitter_node = TaskSplitterNode(
-            name="task_splitter", llm_service=self.task_splitter_llm
+            name="task_splitter",
+            llm_service=self.task_splitter_llm,
+            prompt_name="task_splitter",
+            dialog_selector=lambda x: x.dialog,
         )
+
         self.task_classifier_node = TaskClassifierNode(
-            name="task_classifier", llm_service=self.task_classifier_llm
+            name="task_classifier",
+            llm_service=self.task_classifier_llm,
+            prompt_name="task_classifier",
+            dialog_selector=lambda x: x.dialog,
         )
 
         tools = self.get_tools()
@@ -106,6 +113,7 @@ class Application:
             prompt_name="expert_1",
             openai_service=self.rasg_llm,
             mcp_tools=tools,
+            dialog_selector=lambda x: x.expert_1,
         )
 
     def get_tools(self):

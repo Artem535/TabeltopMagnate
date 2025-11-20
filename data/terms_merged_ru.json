@@ -1,0 +1,828 @@
+[
+  {
+    "id": "c3d5b7b9-0dbd-4277-b540-13966774a9c6",
+    "name": "Исследование",
+    "slug": "explore",
+    "kind": "TERM",
+    "path": "game_mechanics/actions/explore",
+    "group": "game_mechanics",
+    "definition": "Взять верхнюю карту комнат и выложить её на стол",
+    "extra": {
+      "restrictions": [
+        "хотя бы один выход должен совпадать",
+        "карту можно вращать"
+      ]
+    }
+  },
+  {
+    "id": "414047d5-cc45-46e8-be21-8c19fcc20fb9",
+    "name": "Выход из подземелья",
+    "slug": "exit_dungeon",
+    "kind": "TERM",
+    "path": "game_mechanics/actions/exit_dungeon",
+    "group": "game_mechanics",
+    "definition": "Пройти путь из подземелья, разыгрывая эффекты карт",
+    "extra": {
+      "requirements": [
+        "путь начинается со стартовой комнаты",
+        "заканчивается выходом"
+      ]
+    }
+  },
+  {
+    "id": "221b7295-89bf-4b63-bb4b-8533d80956a9",
+    "name": "Сон",
+    "slug": "sleep",
+    "kind": "TERM",
+    "path": "game_mechanics/actions/sleep",
+    "group": "game_mechanics",
+    "definition": "Выйти из раунда, получив дополнительный жетон лапки",
+    "extra": {
+      "effect": "игрок не участвует до конца раунда"
+    }
+  },
+  {
+    "id": "dcbc5b0b-fd90-451e-be76-a76b6f17990a",
+    "name": "Символы атаки",
+    "slug": "attack_symbols",
+    "kind": "TERM",
+    "path": "game_mechanics/combat/attack_symbols",
+    "group": "game_mechanics",
+    "definition": "Символы, необходимые для победы над монстрами",
+    "extra": {
+      "types": [
+        "меч",
+        "лук",
+        "огненный шар",
+        "щит",
+        "золотая монета",
+        "синий щит"
+      ]
+    }
+  },
+  {
+    "id": "e0ebc43d-d789-45a5-ba72-45361a56d3d2",
+    "name": "Символы защиты",
+    "slug": "defense_symbols",
+    "kind": "TERM",
+    "path": "game_mechanics/combat/defense_symbols",
+    "group": "game_mechanics",
+    "definition": "Символы, поглощающие урон от монстров",
+    "extra": {
+      "types": [
+        "ледяной кристалл",
+        "другие защитные символы"
+      ]
+    }
+  },
+  {
+    "id": "83e227a7-e4ac-4030-9e00-4b79df51f63e",
+    "name": "Урон",
+    "slug": "damage",
+    "kind": "TERM",
+    "path": "game_mechanics/combat/damage",
+    "group": "game_mechanics",
+    "definition": "Урон, наносимый монстрами при проходе мимо них",
+    "extra": {
+      "consequence": "если сумма урона >= защита, игрок не может пройти"
+    }
+  },
+  {
+    "id": "6941df7d-46d0-4456-b8f9-328833af3e98",
+    "name": "Артефакты",
+    "slug": "artifacts",
+    "kind": "TERM",
+    "path": "game_mechanics/treasures/artifacts",
+    "group": "game_mechanics",
+    "definition": "Предметы, дающие два трофейных символа атаки",
+    "extra": {
+      "quantity": "3 разных артефакта"
+    }
+  },
+  {
+    "id": "bb8501a8-c187-4a24-980e-9bb43d6aba38",
+    "name": "Монеты",
+    "slug": "coins",
+    "kind": "TERM",
+    "path": "game_mechanics/treasures/coins",
+    "group": "game_mechanics",
+    "definition": "Золотые монеты, приносящие очки победы",
+    "extra": {
+      "types": [
+        "одиночные монеты",
+        "двойные монеты"
+      ]
+    }
+  },
+  {
+    "id": "94ead43a-84c2-4a22-b9fc-7341eb02459f",
+    "name": "Сундуки",
+    "slug": "chests",
+    "kind": "TERM",
+    "path": "game_mechanics/treasures/chests",
+    "group": "game_mechanics",
+    "definition": "Особые сокровища, приносящие 4 монеты при наличии ключа",
+    "extra": {
+      "requirement": "необходим ключ для получения монет"
+    }
+  },
+  {
+    "id": "195dc3c5-0c5c-4167-8872-365b6d7b36f1",
+    "name": "Ловушки",
+    "slug": "traps",
+    "kind": "TERM",
+    "path": "game_mechanics/special_elements/traps",
+    "group": "game_mechanics",
+    "definition": "Препятствия, которые можно обезвредить или обойти с штрафом",
+    "extra": {
+      "disarm_method": "использовать карту с подходящим трофеем",
+      "penalty": "отнимает 1 монету в конце игры"
+    }
+  },
+  {
+    "id": "a52006b0-00d4-4520-a1d9-260d34b6b746",
+    "name": "Бродяга",
+    "slug": "wanderer",
+    "kind": "TERM",
+    "path": "game_mechanics/special_elements/wanderer",
+    "group": "game_mechanics",
+    "definition": "Помощник, дающий трофеи за плату",
+    "extra": {
+      "cost": "1 монета в конце игры",
+      "options": [
+        "2 трофея (по одному за сражение)",
+        "1 трофей + 1 жетон лапки"
+      ]
+    }
+  },
+  {
+    "id": "5712ee06-c731-472e-9791-101354a01620",
+    "name": "Порталы",
+    "slug": "portals",
+    "kind": "TERM",
+    "path": "game_mechanics/special_elements/portals",
+    "group": "game_mechanics",
+    "definition": "Карты мгновенного перемещения между собой",
+    "extra": {
+      "usage": "не требуют жетонов лапок"
+    }
+  },
+  {
+    "id": "fba3596d-de40-43c8-9035-e350a3b1329d",
+    "name": "Двери",
+    "slug": "doors",
+    "kind": "TERM",
+    "path": "game_mechanics/special_elements/doors",
+    "group": "game_mechanics",
+    "definition": "Препятствия, требующие ключа для прохода",
+    "extra": {
+      "key_types": [
+        "трофейный ключ от стрекоключа",
+        "ключ Плохиша Плуто"
+      ]
+    }
+  },
+  {
+    "id": "be3218da-f478-4ff8-9d9a-20b9768255d8",
+    "name": "Личные квесты",
+    "slug": "personal",
+    "kind": "TERM",
+    "path": "player_resources/quests/personal",
+    "group": "player_resources",
+    "definition": "Секретные квесты, известные только одному игроку",
+    "extra": {
+      "completion": "приносят монеты только владельцу"
+    }
+  },
+  {
+    "id": "5fcbf22e-c12f-4ba0-b280-ac8f6ca31eee",
+    "name": "Общие квесты",
+    "slug": "common",
+    "kind": "TERM",
+    "path": "player_resources/quests/common",
+    "group": "player_resources",
+    "definition": "Открытые квесты, которые может выполнить любой игрок",
+    "extra": {
+      "completion": "может выполнить несколько игроков"
+    }
+  },
+  {
+    "id": "23e811f3-854a-43b3-80a5-97f15e67a3a8",
+    "name": "ПОДЗЕМЕЛЬЯ ПЁСИКИ",
+    "slug": "подземелья_пёсики",
+    "kind": "ENTITY",
+    "path": "game_title",
+    "group": "GAME_TITLE",
+    "definition": "Название настольной игры",
+    "extra": {
+      "mentions": [
+        "title",
+        "throughout_document"
+      ]
+    }
+  },
+  {
+    "id": "d2e0a6ed-ccc0-4217-aade-3001c9faddca",
+    "name": "Робин Гудгёрл",
+    "slug": "робин_гудгёрл",
+    "kind": "ENTITY",
+    "path": "player_characters",
+    "group": "CHARACTER",
+    "definition": "Следопыт. Перепрыгивает все ловушки",
+    "extra": {
+      "class": "Следопыт",
+      "ability": "Перепрыгивает все ловушки",
+      "first_mention": 77,
+      "mentions": [
+        77,
+        253,
+        257
+      ]
+    }
+  },
+  {
+    "id": "586e2ea3-a955-430c-8e18-91723f16f739",
+    "name": "Жанна Гавк",
+    "slug": "жанна_гавк",
+    "kind": "ENTITY",
+    "path": "player_characters",
+    "group": "CHARACTER",
+    "definition": "Один раз за раунд может потратить ещё один жетон, чтобы победить монстра (кроме дракона), на которого не хватает символов атаки",
+    "extra": {
+      "ability": "Один раз за раунд может потратить ещё один жетон, чтобы победить монстра (кроме дракона), на которого не хватает символов атаки",
+      "first_mention": 363,
+      "mentions": [
+        305,
+        363
+      ]
+    }
+  },
+  {
+    "id": "56fddd3c-d2dc-4c24-b731-3de51f057244",
+    "name": "Боньк Могучий",
+    "slug": "боньк_могучий",
+    "kind": "ENTITY",
+    "path": "player_characters",
+    "group": "CHARACTER",
+    "definition": "Может пробить дверь без ключа",
+    "extra": {
+      "ability": "Может пробить дверь без ключа",
+      "mentions": [
+        90,
+        339
+      ]
+    }
+  },
+  {
+    "id": "dc9ef02b-1835-4ea8-88a7-6d1e01bbb7ab",
+    "name": "Плохиш Плуто",
+    "slug": "плохиш_плуто",
+    "kind": "ENTITY",
+    "path": "player_characters",
+    "group": "CHARACTER",
+    "definition": "Имеет ключ с начала игры",
+    "extra": {
+      "ability": "Имеет ключ с начала игры",
+      "mentions": [
+        333,
+        339
+      ]
+    }
+  },
+  {
+    "id": "af52a777-b1cb-40c0-8e62-b0fe3d5f8ec9",
+    "name": "Шоколадный голем",
+    "slug": "шоколадный_голем",
+    "kind": "ENTITY",
+    "path": "monsters",
+    "group": "MONSTER",
+    "definition": "Требования атаки: золотые монеты, синие щиты",
+    "extra": {
+      "attack_requirements": [
+        "золотые монеты",
+        "синие щиты"
+      ],
+      "trophy": "ледяной кристалл",
+      "first_mention": 245,
+      "mentions": [
+        245,
+        246,
+        247,
+        248,
+        249
+      ]
+    }
+  },
+  {
+    "id": "90f7dd5b-1e83-4ab3-a823-dede907e9935",
+    "name": "Мимик",
+    "slug": "мимик",
+    "kind": "ENTITY",
+    "path": "monsters",
+    "group": "MONSTER",
+    "definition": "Требования атаки: лук, огненный шар",
+    "extra": {
+      "attack_requirements": [
+        "лук",
+        "огненный шар"
+      ],
+      "trophy": "меч",
+      "first_mention": 260,
+      "mentions": [
+        253,
+        260,
+        261
+      ]
+    }
+  },
+  {
+    "id": "ed98ae1c-6981-4c13-b531-69986029630d",
+    "name": "Цербер",
+    "slug": "цербер",
+    "kind": "ENTITY",
+    "path": "monsters",
+    "group": "MONSTER",
+    "definition": "Требования атаки: 3 меча",
+    "extra": {
+      "attack_requirements": [
+        "3 меча"
+      ],
+      "first_mention": 262,
+      "mentions": [
+        197,
+        255,
+        262
+      ]
+    }
+  },
+  {
+    "id": "8e00d5dc-bfb4-4ec3-9490-3f055843217a",
+    "name": "Гигаклещ",
+    "slug": "гигаклещ",
+    "kind": "ENTITY",
+    "path": "monsters",
+    "group": "MONSTER",
+    "definition": "",
+    "extra": {
+      "first_mention": 123,
+      "mentions": [
+        123,
+        126,
+        199
+      ]
+    }
+  },
+  {
+    "id": "589af1ea-6f20-437d-939d-719f83113bef",
+    "name": "Зомби-белка",
+    "slug": "зомбибелка",
+    "kind": "ENTITY",
+    "path": "monsters",
+    "group": "MONSTER",
+    "definition": "",
+    "extra": {
+      "trophy": "меч",
+      "first_mention": 305,
+      "mentions": [
+        305
+      ]
+    }
+  },
+  {
+    "id": "7bd23e2b-005b-4d90-b98c-20d7144c110d",
+    "name": "Дракон",
+    "slug": "дракон",
+    "kind": "ENTITY",
+    "path": "monsters",
+    "group": "MONSTER",
+    "definition": "",
+    "extra": {
+      "reward": "4 монеты вместо трофеев",
+      "first_mention": 226,
+      "mentions": [
+        123,
+        126,
+        226
+      ]
+    }
+  },
+  {
+    "id": "64b97272-e7f7-4d47-9313-6e17688aa2e3",
+    "name": "Стрекоключ",
+    "slug": "стрекоключ",
+    "kind": "ENTITY",
+    "path": "monsters",
+    "group": "MONSTER",
+    "definition": "",
+    "extra": {
+      "trophy": "ключ",
+      "first_mention": 226,
+      "mentions": [
+        226,
+        333
+      ]
+    }
+  },
+  {
+    "id": "dea41f14-4992-47fc-b5a7-d2d29e33340a",
+    "name": "Ифрит",
+    "slug": "ифрит",
+    "kind": "ENTITY",
+    "path": "monsters",
+    "group": "MONSTER",
+    "definition": "",
+    "extra": {
+      "first_mention": 382,
+      "mentions": [
+        382
+      ]
+    }
+  },
+  {
+    "id": "30da0711-114a-439a-91b1-596b3308e311",
+    "name": "Стальная хватка",
+    "slug": "стальная_хватка",
+    "kind": "ENTITY",
+    "path": "quests",
+    "group": "QUEST",
+    "definition": "",
+    "extra": {
+      "type": "трофейный",
+      "description": "Собрать больше всех указанных трофейных символов",
+      "first_mention": 99,
+      "mentions": [
+        99,
+        384
+      ]
+    }
+  },
+  {
+    "id": "291e36ac-960e-4564-8e7a-d5119b3c178f",
+    "name": "Огонь в сердце",
+    "slug": "огонь_в_сердце",
+    "kind": "ENTITY",
+    "path": "quests",
+    "group": "QUEST",
+    "definition": "",
+    "extra": {
+      "type": "трофейный",
+      "description": "Собрать больше всех указанных трофейных символов",
+      "first_mention": 99,
+      "mentions": [
+        99,
+        384
+      ]
+    }
+  },
+  {
+    "id": "6f65c169-ca15-4319-8bb7-8c47926deedc",
+    "name": "В яблочко",
+    "slug": "в_яблочко",
+    "kind": "ENTITY",
+    "path": "quests",
+    "group": "QUEST",
+    "definition": "",
+    "extra": {
+      "type": "трофейный",
+      "description": "Собрать больше всех указанных трофейных символов",
+      "first_mention": 99,
+      "mentions": [
+        99,
+        384
+      ]
+    }
+  },
+  {
+    "id": "bf199fc2-b6d7-48bd-95a9-4a4ba809a764",
+    "name": "Последнее желание",
+    "slug": "последнее_желание",
+    "kind": "ENTITY",
+    "path": "quests",
+    "group": "QUEST",
+    "definition": "",
+    "extra": {
+      "type": "монстровский",
+      "description": "Победить указанных монстров (ифритов)",
+      "first_mention": 382,
+      "mentions": [
+        382
+      ]
+    }
+  },
+  {
+    "id": "572f5624-b5a7-441c-be6c-cc3a7cf2689f",
+    "name": "карты комнат",
+    "slug": "карты_комнат",
+    "kind": "ENTITY",
+    "path": "game_elements",
+    "group": "GAME_ELEMENT",
+    "definition": "",
+    "extra": {
+      "type": "component",
+      "quantity": 90,
+      "mentions": [
+        22,
+        119,
+        136,
+        185,
+        350,
+        357
+      ]
+    }
+  },
+  {
+    "id": "d68f340c-f371-4cb9-885e-87a61edbe990",
+    "name": "планшеты пёсиков",
+    "slug": "планшеты_пёсиков",
+    "kind": "ENTITY",
+    "path": "game_elements",
+    "group": "GAME_ELEMENT",
+    "definition": "",
+    "extra": {
+      "type": "component",
+      "quantity": 6,
+      "mentions": [
+        23,
+        38,
+        75,
+        361
+      ]
+    }
+  },
+  {
+    "id": "07f3e7a3-9aea-404b-8173-4a6f2449f9c0",
+    "name": "карты квестов",
+    "slug": "карты_квестов",
+    "kind": "ENTITY",
+    "path": "game_elements",
+    "group": "GAME_ELEMENT",
+    "definition": "",
+    "extra": {
+      "type": "component",
+      "quantity": 12,
+      "mentions": [
+        24,
+        42,
+        43,
+        44,
+        46,
+        47,
+        99,
+        350
+      ]
+    }
+  },
+  {
+    "id": "9a38a12b-94e0-4328-995a-c187d429435b",
+    "name": "карты зелий",
+    "slug": "карты_зелий",
+    "kind": "ENTITY",
+    "path": "game_elements",
+    "group": "GAME_ELEMENT",
+    "definition": "",
+    "extra": {
+      "type": "component",
+      "quantity": 6,
+      "mentions": [
+        25,
+        65,
+        97,
+        336,
+        357
+      ]
+    }
+  },
+  {
+    "id": "1f268241-b54a-457b-8798-813796af6c9e",
+    "name": "жетоны лапок",
+    "slug": "жетоны_лапок",
+    "kind": "ENTITY",
+    "path": "game_elements",
+    "group": "GAME_ELEMENT",
+    "definition": "",
+    "extra": {
+      "type": "component",
+      "quantity": 42,
+      "mentions": [
+        26,
+        40,
+        86,
+        90,
+        91,
+        95,
+        212,
+        271,
+        276,
+        315,
+        332,
+        336
+      ]
+    }
+  },
+  {
+    "id": "8cefa29b-8fe2-482d-b3f9-416bc42424e1",
+    "name": "жетоны раундов",
+    "slug": "жетоны_раундов",
+    "kind": "ENTITY",
+    "path": "game_elements",
+    "group": "GAME_ELEMENT",
+    "definition": "",
+    "extra": {
+      "type": "component",
+      "quantity": 3,
+      "mentions": [
+        28,
+        57,
+        350,
+        357
+      ]
+    }
+  },
+  {
+    "id": "819690b4-5477-481d-98fa-df7c455402a8",
+    "name": "жетон первого игрока",
+    "slug": "жетон_первого_игрока",
+    "kind": "ENTITY",
+    "path": "game_elements",
+    "group": "GAME_ELEMENT",
+    "definition": "",
+    "extra": {
+      "type": "component",
+      "mentions": [
+        29,
+        69,
+        350
+      ]
+    }
+  },
+  {
+    "id": "996c69ba-6761-43b3-9aba-6ec4a6768033",
+    "name": "меч",
+    "slug": "меч",
+    "kind": "ENTITY",
+    "path": "symbols",
+    "group": "SYMBOL",
+    "definition": "",
+    "extra": {
+      "type": "attack_symbol",
+      "mentions": [
+        79,
+        224,
+        255,
+        280,
+        305
+      ]
+    }
+  },
+  {
+    "id": "b77c6969-79fb-4651-b2d8-1659a557c2ce",
+    "name": "лук",
+    "slug": "лук",
+    "kind": "ENTITY",
+    "path": "symbols",
+    "group": "SYMBOL",
+    "definition": "",
+    "extra": {
+      "type": "attack_symbol",
+      "mentions": [
+        79,
+        253,
+        280
+      ]
+    }
+  },
+  {
+    "id": "fc88266f-6bec-4b5c-84dc-a6bbe0bf5d6c",
+    "name": "огненный шар",
+    "slug": "огненный_шар",
+    "kind": "ENTITY",
+    "path": "symbols",
+    "group": "SYMBOL",
+    "definition": "",
+    "extra": {
+      "type": "attack_symbol",
+      "mentions": [
+        79,
+        253,
+        280
+      ]
+    }
+  },
+  {
+    "id": "437ae604-6178-4879-b879-a0f53e55c866",
+    "name": "щит",
+    "slug": "щит",
+    "kind": "ENTITY",
+    "path": "symbols",
+    "group": "SYMBOL",
+    "definition": "",
+    "extra": {
+      "type": "attack_symbol",
+      "mentions": [
+        79,
+        224,
+        280
+      ]
+    }
+  },
+  {
+    "id": "8bf90245-e3fe-4c73-928b-1911e7198ada",
+    "name": "ледяной кристалл",
+    "slug": "ледяной_кристалл",
+    "kind": "ENTITY",
+    "path": "symbols",
+    "group": "SYMBOL",
+    "definition": "",
+    "extra": {
+      "type": "defense_symbol",
+      "mentions": [
+        248,
+        249
+      ]
+    }
+  },
+  {
+    "id": "0c01c73d-a46b-4253-8856-ef711f12a6bf",
+    "name": "золотая монета",
+    "slug": "золотая_монета",
+    "kind": "ENTITY",
+    "path": "symbols",
+    "group": "SYMBOL",
+    "definition": "",
+    "extra": {
+      "type": "attack_symbol",
+      "mentions": [
+        246,
+        247,
+        271,
+        272
+      ]
+    }
+  },
+  {
+    "id": "a372d97e-a498-467a-89df-fe7dca9b3650",
+    "name": "синий щит",
+    "slug": "синий_щит",
+    "kind": "ENTITY",
+    "path": "symbols",
+    "group": "SYMBOL",
+    "definition": "",
+    "extra": {
+      "type": "attack_symbol",
+      "mentions": [
+        247,
+        271
+      ]
+    }
+  },
+  {
+    "id": "a4a8a54b-b370-43fa-b5cc-592cfa5ce713",
+    "name": "подземелье",
+    "slug": "подземелье",
+    "kind": "ENTITY",
+    "path": "locations",
+    "group": "LOCATION",
+    "definition": "",
+    "extra": {
+      "type": "game_area",
+      "mentions": [
+        "throughout_document"
+      ]
+    }
+  },
+  {
+    "id": "6554e1ce-886f-49bd-b3bb-b99fa942e15a",
+    "name": "стартовая комната",
+    "slug": "стартовая_комната",
+    "kind": "ENTITY",
+    "path": "locations",
+    "group": "LOCATION",
+    "definition": "",
+    "extra": {
+      "type": "special_room",
+      "mentions": [
+        49,
+        140,
+        350
+      ]
+    }
+  },
+  {
+    "id": "f03cc29d-f3d7-477a-9172-706424c8fc15",
+    "name": "выход из подземелья",
+    "slug": "выход_из_подземелья",
+    "kind": "ENTITY",
+    "path": "locations",
+    "group": "LOCATION",
+    "definition": "",
+    "extra": {
+      "type": "game_element",
+      "mentions": [
+        120,
+        134,
+        140,
+        158
+      ]
+    }
+  }
+]
