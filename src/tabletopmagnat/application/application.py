@@ -4,11 +4,18 @@ from langfuse import Langfuse
 
 from tabletopmagnat.config.config import Config
 from tabletopmagnat.node.echo_node import EchoNode
+from tabletopmagnat.node.expert_parallel_coordinator_node import (
+    ExpertParallelCoordinator,
+)
+from tabletopmagnat.node.from_summary_to_main_node import FromSummaryToMain
+from tabletopmagnat.node.join_node import JoinNode
+from tabletopmagnat.node.llm_node import LLMNode
 from tabletopmagnat.node.security_llm_node import SecurityNode
 from tabletopmagnat.node.task_classifier_node import TaskClassifierNode
 from tabletopmagnat.node.task_splitter_node import TaskSplitterNode
 from tabletopmagnat.pocketflow import AsyncFlow
 from tabletopmagnat.services.openai_service import OpenAIService
+from tabletopmagnat.state.expert_state import ExpertState
 from tabletopmagnat.state.private_state import PrivateState
 from tabletopmagnat.structured_output.security import SecurityOutput
 from tabletopmagnat.structured_output.task_classifier import TaskClassifierOutput
@@ -43,13 +50,18 @@ class Application:
         )
 
         # Service
+
+        self.general_llm = OpenAIService(
+            self.config.models.general_model, self.config.openai
+        )
+        # ---
         self.task_splitter_llm = OpenAIService(
-            self.config.models.task_splitter_model, self.config.openai
+            self.config.models.general_model, self.config.openai
         )
         self.task_splitter_llm.bind_structured(TaskSplitterOutput)
         # ---
         self.task_classifier_llm = OpenAIService(
-            self.config.models.task_classification_model, self.config.openai
+            self.config.models.general_model, self.config.openai
         )
         self.task_classifier_llm.bind_structured(TaskClassifierOutput)
         # ---
@@ -66,6 +78,10 @@ class Application:
         self.echo_node: EchoNode | None = None
         self.task_classifier_node: TaskClassifierNode | None = None
         self.task_splitter_node: TaskSplitterNode | None = None
+        self.expert_parallel_coordinator: ExpertParallelCoordinator | None = None
+        self.join_node: JoinNode | None = None
+        self.summary_node: LLMNode | None = None
+        self.swicth_node: FromSummaryToMain | None = None
 
         self.expert_1: AsyncFlow | None = None
         self.expert_2: AsyncFlow | None = None
@@ -116,6 +132,40 @@ class Application:
             dialog_selector=lambda x: x.expert_1,
         )
 
+        self.expert_2 = await RASG.create_subgraph(
+            name="expert_2",
+            prompt_name="expert_2",
+            openai_service=self.rasg_llm,
+            mcp_tools=tools,
+            dialog_selector=lambda x: x.expert_2,
+        )
+
+        self.expert_3 = await RASG.create_subgraph(
+            name="expert_3",
+            prompt_name="expert_3",
+            openai_service=self.rasg_llm,
+            mcp_tools=tools,
+            dialog_selector=lambda x: x.expert_3,
+        )
+
+        self.expert_parallel_coordinator = ExpertParallelCoordinator(
+            name="expert_parallel_coordinator",
+            expert_state=ExpertState(
+                expert_1=self.expert_1, expert_2=self.expert_2, expert_3=self.expert_3
+            ),
+        )
+
+        self.join_node = JoinNode(name="join")
+
+        self.summary_node = LLMNode(
+            name="summary",
+            prompt_name="summary",
+            llm_service=self.general_llm,
+            dialog_selector=lambda x: x.summary,
+        )
+
+        self.swicth_node = FromSummaryToMain(name="switch")
+
     def get_tools(self):
         """Construct and return a set of external tools (e.g., MCP API).
 
@@ -141,7 +191,10 @@ class Application:
         self.security_node - "safe" >> self.task_classifier_node
 
         self.task_classifier_node - "explanation" >> self.task_splitter_node
-        self.task_splitter_node >> self.expert_1
+        self.task_splitter_node >> self.expert_parallel_coordinator
+        self.expert_parallel_coordinator >> self.join_node
+        self.join_node >> self.summary_node
+        self.summary_node >> self.swicth_node
 
     async def init_flow(self):
         """Initialize the workflow by setting up nodes and connecting them.

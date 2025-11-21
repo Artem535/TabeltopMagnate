@@ -1,6 +1,8 @@
 from copy import deepcopy
 from typing import Callable
 
+from blacksheep.server.controllers import abstract
+from tabletopmagnat.node.abstract_node import AbstractNode
 from tabletopmagnat.node.llm_node import LLMNode
 from tabletopmagnat.node.mcp_tool_node import MCPToolNode
 from tabletopmagnat.pocketflow import AsyncFlow
@@ -40,8 +42,11 @@ class RASG:
             dialog_selector=dialog_selector,
         )
 
+        abstract_node = AbstractNode(name="abstract_node")
+
         # Connect
         universal_node - "tools" >> tool_node
+        universal_node - "default" >> abstract_node
         tool_node >> universal_node
 
         # Create flow

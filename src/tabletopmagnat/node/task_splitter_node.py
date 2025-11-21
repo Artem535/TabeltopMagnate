@@ -17,11 +17,24 @@ class TaskSplitterNode(LLMNode):
         prompt = self._lf_client.get_prompt("task_splitter")
         return SystemMessage(content=prompt.prompt)
 
+
+    def prepare_message(self, content: str) -> str:
+        msg = f"Here is your task: {content}"
+        msg += "\n---\n Always use tools to get information for task."
+        return msg
+
     @override
     async def post_async(self, shared: PrivateState, prep_res, exec_res: AiMessage):
         assert "task_for_expert1" in exec_res.metadata, "No task for expert1 found"
-        msg = f"Here is your task: {exec_res.metadata['task_for_expert1']}"
-        msg += "\n---\n Always use tools to get information for task."
+        msg = self.prepare_message(exec_res.metadata["task_for_expert1"])
         shared.expert_1.add_message(UserMessage(content=msg))
+
+        assert "task_for_expert2" in exec_res.metadata, "No task for expert2 found"
+        msg = self.prepare_message(exec_res.metadata["task_for_expert2"])
+        shared.expert_2.add_message(UserMessage(content=msg))
+
+        assert "task_for_expert3" in exec_res.metadata, "No task for expert3 found"
+        msg = self.prepare_message(exec_res.metadata["task_for_expert3"])
+        shared.expert_3.add_message(UserMessage(content=msg))
 
         return "default"
