@@ -5,7 +5,7 @@ from blacksheep.server.controllers import abstract
 from tabletopmagnat.node.abstract_node import AbstractNode
 from tabletopmagnat.node.llm_node import LLMNode
 from tabletopmagnat.node.mcp_tool_node import MCPToolNode
-from tabletopmagnat.pocketflow import AsyncFlow
+from tabletopmagnat.pocketflow import AsyncFlow, AsyncNode
 from tabletopmagnat.services.openai_service import OpenAIService
 from tabletopmagnat.types.dialog import Dialog
 from tabletopmagnat.types.tool.mcp import MCPTools
@@ -42,7 +42,7 @@ class RASG:
             dialog_selector=dialog_selector,
         )
 
-        abstract_node = AbstractNode(name="abstract_node")
+        abstract_node = AsyncNode()
 
         # Connect
         universal_node - "tools" >> tool_node
