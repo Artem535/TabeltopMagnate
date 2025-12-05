@@ -21,6 +21,7 @@ from tabletopmagnat.structured_output.security import SecurityOutput
 from tabletopmagnat.structured_output.task_classifier import TaskClassifierOutput
 from tabletopmagnat.structured_output.task_splitter import TaskSplitterOutput
 from tabletopmagnat.subgraphs.rags import RASG
+from tabletopmagnat.types.dialog import Dialog
 from tabletopmagnat.types.messages import UserMessage
 from tabletopmagnat.types.tool import ToolHeader
 from tabletopmagnat.types.tool.mcp import MCPServer, MCPServers, MCPTools
@@ -70,8 +71,7 @@ class Application:
         )
         self.security_llm.bind_structured(SecurityOutput)
         # ---
-        # TODO: FIX TYPOS
-        self.rasg_llm = OpenAIService(self.config.models.rags_model, self.config.openai)
+        self.rasg_llm = OpenAIService(self.config.models.rasg_model, self.config.openai)
 
         # Nodes
         self.security_node: SecurityNode | None = None
@@ -81,7 +81,7 @@ class Application:
         self.expert_parallel_coordinator: ExpertParallelCoordinator | None = None
         self.join_node: JoinNode | None = None
         self.summary_node: LLMNode | None = None
-        self.swicth_node: FromSummaryToMain | None = None
+        self.switch_node: FromSummaryToMain | None = None
 
         self.expert_1: AsyncFlow | None = None
         self.expert_2: AsyncFlow | None = None
@@ -164,7 +164,7 @@ class Application:
             dialog_selector=lambda x: x.summary,
         )
 
-        self.swicth_node = FromSummaryToMain(name="switch")
+        self.switch_node = FromSummaryToMain(name="switch")
 
     def get_tools(self):
         """Construct and return a set of external tools (e.g., MCP API).
@@ -194,7 +194,7 @@ class Application:
         self.task_splitter_node >> self.expert_parallel_coordinator
         self.expert_parallel_coordinator >> self.join_node
         self.join_node >> self.summary_node
-        self.summary_node >> self.swicth_node
+        self.summary_node >> self.switch_node
 
     async def init_flow(self):
         """Initialize the workflow by setting up nodes and connecting them.
@@ -205,7 +205,7 @@ class Application:
         self.connect_nodes()
         self.flow = AsyncFlow(start=self.security_node)
 
-    async def run(self, msg=""):
+    async def run_msg(self, msg: str):
         """Run the application workflow with a sample user message.
 
         This method adds a user message to the dialog, initializes the workflow if it hasn't been created yet,
@@ -213,6 +213,20 @@ class Application:
         """
 
         self.shared_data.dialog.add_message(UserMessage(content=msg))
+
+        if self.flow is None:
+            await self.init_flow()
+
+        with self.langfuse.start_as_current_span(name=f"Span:{uuid4()}") as span:
+            span.update(input=self.shared_data.dialog)
+
+            await self.flow.run_async(shared=self.shared_data)
+
+            last_msg = self.shared_data.dialog.get_last_message()
+            span.update(output=last_msg)
+
+    async def run(self, dialog: Dialog):
+        self.shared_data.dialog = dialog
 
         if self.flow is None:
             await self.init_flow()
