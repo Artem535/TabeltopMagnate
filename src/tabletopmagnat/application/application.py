@@ -166,7 +166,8 @@ class Application:
 
         self.switch_node = FromSummaryToMain(name="switch")
 
-    def get_tools(self):
+    @staticmethod
+    def get_tools():
         """Construct and return a set of external tools (e.g., MCP API).
 
         Returns:
@@ -225,6 +226,8 @@ class Application:
             last_msg = self.shared_data.dialog.get_last_message()
             span.update(output=last_msg)
 
+            return last_msg
+
     async def run(self, dialog: Dialog):
         self.shared_data.dialog = dialog
 
@@ -238,3 +241,5 @@ class Application:
 
             last_msg = self.shared_data.dialog.get_last_message()
             span.update(output=last_msg)
+
+            return last_msg
