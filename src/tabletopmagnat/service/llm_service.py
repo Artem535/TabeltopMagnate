@@ -241,7 +241,7 @@ class Service:
         self.connect_nodes()
         self.flow = AsyncFlow(start=self.security_node)
 
-    async def run_msg(self, msg: str) -> Any:
+    async def run_msg(self, msg: str) -> str:
         """Run the application workflow with a sample user message.
 
         This method adds a user message to the dialog, initializes the workflow if it hasn't been created yet,
@@ -269,9 +269,9 @@ class Service:
             last_msg = self.shared_data.dialog.get_last_message()
             span.update(output=last_msg)
 
-            return last_msg
+            return last_msg.content
 
-    async def run(self, dialog: Dialog) -> Any:
+    async def run(self, dialog: Dialog) -> str:
         """Run the application workflow with a given dialog.
 
         This method sets the dialog in shared data, initializes the workflow if needed,
@@ -299,4 +299,4 @@ class Service:
             last_msg = self.shared_data.dialog.get_last_message()
             span.update(output=last_msg)
 
-            return last_msg
+            return last_msg.content
