@@ -8,8 +8,9 @@ into a list of dictionaries, suitable for external processing or API interaction
 Classes:
     Dialog: A container for managing a sequence of message objects.
 """
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
+from tabletopmagnat.types.messages import UserMessage
 from tabletopmagnat.types.messages.base_message import BaseMessage
 
 
@@ -24,7 +25,10 @@ class Dialog(BaseModel):
         add_message(message): Adds a message to the dialog if it is an instance of BaseMessage.
         to_list(): Converts all messages in the dialog into a list of dictionaries.
     """
-    messages: list[BaseMessage] | None = None
+
+    messages: list[BaseMessage] | None = Field(
+        default=None, examples=[UserMessage(content="Hello, how are you?")]
+    )
 
     def add_message(self, message: BaseMessage) -> None:
         """
@@ -57,7 +61,6 @@ class Dialog(BaseModel):
         if isinstance(other, Dialog):
             self.messages.extend(other.messages)
             return self
-
 
         raise TypeError(f"Cannot add {type(other)} to Dialog")
 
