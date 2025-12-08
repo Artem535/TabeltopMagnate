@@ -13,15 +13,14 @@ Key Features:
 Classes:
     Config: Main configuration class that includes service-specific configurations.
 """
-
-from pydantic_settings import BaseSettings, SettingsConfigDict  # type: ignore
+from pydantic import BaseModel, Field
 
 from tabletopmagnat.config.langfuse import LangfuseSettings
 from tabletopmagnat.config.models import Models
 from tabletopmagnat.config.openai_config import OpenAIConfig
 
 
-class Config(BaseSettings):
+class Config(BaseModel):
     """
     Main application configuration class.
 
@@ -33,12 +32,6 @@ class Config(BaseSettings):
             the `.env` file path, encoding, and nested parameter delimiter.
         openai (OpenAIConfig): Nested configuration for OpenAI services.
     """
-
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        env_nested_delimiter="__"
-    )
-    models: Models = Models()
-    openai: OpenAIConfig = OpenAIConfig()
-    langfuse: LangfuseSettings = LangfuseSettings()
+    models: Models = Field(default_factory=Models)
+    openai: OpenAIConfig = Field(default_factory=OpenAIConfig)
+    langfuse: LangfuseSettings = Field(default_factory=LangfuseSettings)
