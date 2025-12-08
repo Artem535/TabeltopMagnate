@@ -27,7 +27,7 @@ class Dialog(BaseModel):
     """
 
     messages: list[BaseMessage] | None = Field(
-        default=None, examples=[UserMessage(content="Hello, how are you?")]
+        default=None, examples=[[UserMessage(content="Hello, how are you?")]]
     )
 
     def add_message(self, message: BaseMessage) -> None:
