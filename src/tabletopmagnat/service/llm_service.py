@@ -1,7 +1,7 @@
+from typing import Any
 from uuid import uuid4
 
 from langfuse import Langfuse
-from typing_extensions import deprecated
 
 from tabletopmagnat.config.config import Config
 from tabletopmagnat.node.echo_node import EchoNode
@@ -28,24 +28,39 @@ from tabletopmagnat.types.tool import ToolHeader
 from tabletopmagnat.types.tool.mcp import MCPServer, MCPServers, MCPTools
 
 
-@deprecated("This class is deprecated and will be removed in a future release. Use service instead.")
-class Application:
+class Service:
     """Main application class that orchestrates nodes and tools to process user input using LLM and external APIs.
 
     Attributes:
         config (Config): Configuration object loaded from the application's config module.
         langfuse (Langfuse): Langfuse client for observability and tracing.
-        _llm (OpenAIService): Language model service used for message generation.
-        task_classifier (TaskClassifierNode | None): Node responsible for classifying tasks based on input.
-        tool_node (MCPToolNode | None): Node responsible for invoking external tools.
-        debug_node (DebugNode | None): Final node for logging or debugging output.
+        general_llm (OpenAIService): Language model service for general tasks.
+        task_splitter_llm (OpenAIService): Language model service for task splitting.
+        task_classifier_llm (OpenAIService): Language model service for task classification.
+        security_llm (OpenAIService): Language model service for security checks.
+        rasg_llm (OpenAIService): Language model service for RASG subgraphs.
+        security_node (SecurityNode | None): Node for security validation.
+        echo_node (EchoNode | None): Node for echoing fallback messages.
+        task_classifier_node (TaskClassifierNode | None): Node for classifying tasks.
+        task_splitter_node (TaskSplitterNode | None): Node for splitting tasks.
+        expert_parallel_coordinator (ExpertParallelCoordinator | None): Coordinator for parallel expert subgraphs.
+        join_node (JoinNode | None): Node for joining results from parallel experts.
+        summary_node (LLMNode | None): Node for generating summary.
+        switch_node (FromSummaryToMain | None): Node for switching between summary and main flow.
+        expert_1 (AsyncFlow | None): First expert subgraph.
+        expert_2 (AsyncFlow | None): Second expert subgraph.
+        expert_3 (AsyncFlow | None): Third expert subgraph.
         flow (AsyncFlow | None): Asynchronous workflow composed of connected nodes.
-        shared_data (dict[str, Any]): Shared context between nodes, containing the dialog history.
+        shared_data (PrivateState): Shared context between nodes, containing the dialog history.
     """
 
-    def __init__(self) -> None:
-        """Initialize the Application with configuration, services, and placeholder nodes."""
-        self.config = Config()
+    def __init__(self, config: Config) -> None:
+        """Initialize the Service with configuration, services, and placeholder nodes.
+
+        Args:
+            config (Config): Configuration object containing settings for Langfuse, models, and OpenAI.
+        """
+        self.config = config
         self.langfuse = Langfuse(
             host=self.config.langfuse.host,
             public_key=self.config.langfuse.public_key,
@@ -95,11 +110,15 @@ class Application:
         # Data
         self.shared_data = PrivateState()
 
-    async def init_nodes(self):
+    async def init_nodes(self) -> None:
         """Initialize application nodes if they have not been created yet.
 
-        This method lazily initializes the `task_classifier`, `tool_node`, and `final_node` by calling their respective
-        factory methods. Each node is initialized only once.
+        This method lazily initializes all nodes (security, echo, task classifier, task splitter,
+        expert subgraphs, coordinator, join, summary, switch) by calling their respective constructors.
+        Each node is initialized only once.
+
+        Raises:
+            RuntimeError: If there is an issue initializing MCP tools.
         """
         self.security_node = SecurityNode(
             name="security",
@@ -169,8 +188,11 @@ class Application:
         self.switch_node = FromSummaryToMain(name="switch")
 
     @staticmethod
-    def get_tools():
+    def get_tools() -> MCPTools:
         """Construct and return a set of external tools (e.g., MCP API).
+
+        The method creates a mock MCP server configuration with a bearer token and HTTP transport.
+        This is intended for development; in production, the configuration should be externalized.
 
         Returns:
             MCPTools: A collection of external tools configured for use in the application.
@@ -185,10 +207,17 @@ class Application:
         mcp_servers = MCPServers(mcpServers={"mcp": server})
         return MCPTools(mcp_servers)
 
-    def connect_nodes(self):
+    def connect_nodes(self) -> None:
         """Connect the nodes into a workflow.
 
-        This method defines the data flow between the task classifier, tool node, and final debug node.
+        This method defines the data flow between nodes:
+        - If security check fails -> echo node.
+        - If security check passes -> task classifier.
+        - Task classifier "explanation" -> task splitter.
+        - Task splitter -> expert parallel coordinator.
+        - Expert parallel coordinator -> join node.
+        - Join node -> summary node.
+        - Summary node -> switch node.
         """
         self.security_node - "unsafe" >> self.echo_node
         self.security_node - "safe" >> self.task_classifier_node
@@ -199,22 +228,34 @@ class Application:
         self.join_node >> self.summary_node
         self.summary_node >> self.switch_node
 
-    async def init_flow(self):
+    async def init_flow(self) -> None:
         """Initialize the workflow by setting up nodes and connecting them.
 
-        This method ensures all necessary nodes are initialized and then connects them into an `AsyncFlow`.
+        This method ensures all necessary nodes are initialized (via `init_nodes`) and then connects them
+        into an `AsyncFlow`. The flow starts at the security node.
+
+        Raises:
+            RuntimeError: If node initialization fails.
         """
         await self.init_nodes()
         self.connect_nodes()
         self.flow = AsyncFlow(start=self.security_node)
 
-    async def run_msg(self, msg: str):
+    async def run_msg(self, msg: str) -> Any:
         """Run the application workflow with a sample user message.
 
         This method adds a user message to the dialog, initializes the workflow if it hasn't been created yet,
         and executes the workflow asynchronously. It also logs the input and output using Langfuse.
-        """
 
+        Args:
+            msg (str): The user message to process.
+
+        Returns:
+            Any: The last message from the dialog after processing.
+
+        Raises:
+            RuntimeError: If the flow fails to initialize or execute.
+        """
         self.shared_data.dialog.add_message(UserMessage(content=msg))
 
         if self.flow is None:
@@ -230,7 +271,21 @@ class Application:
 
             return last_msg
 
-    async def run(self, dialog: Dialog):
+    async def run(self, dialog: Dialog) -> Any:
+        """Run the application workflow with a given dialog.
+
+        This method sets the dialog in shared data, initializes the workflow if needed,
+        executes the workflow asynchronously, and logs input/output using Langfuse.
+
+        Args:
+            dialog (Dialog): The dialog object containing the conversation history.
+
+        Returns:
+            Any: The last message from the dialog after processing.
+
+        Raises:
+            RuntimeError: If the flow fails to initialize or execute.
+        """
         self.shared_data.dialog = dialog
 
         if self.flow is None:
