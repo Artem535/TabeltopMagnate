@@ -92,7 +92,7 @@ def find_in_rulebook(
 
     obx_query = rules_box.query(
         Rule.vector.nearest_neighbor(vector, element_count=COUNT_ITEMS)
-        # & Rule.zone.equals(zone)
+        & Rule.game.equals(game_name)
     ).build()
 
     results = []
@@ -101,15 +101,11 @@ def find_in_rulebook(
         results.append(
             {
                 "id": r.id,
-                "internal_id": r.internal_id,
                 "content": r.content,
                 "score": score,
-                "game": r.game,
                 "section": r.section,
                 "req_term": yaml.safe_load(r.req_term),
                 "scenario": r.scenario,
-                "priority": r.priority,
-                "zone": r.zone,
             }
         )
 
@@ -151,10 +147,8 @@ def find_in_terminology(
                 "score": score,
                 "content": t.content,
                 "name": t.name,
-                "group": t.group,
                 "definition": t.definition,
                 "extra": yaml.safe_load(t.extra),
-                "kind": t.kind,
             }
         )
 
