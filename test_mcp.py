@@ -92,7 +92,7 @@ def find_in_rulebook(
 
     obx_query = rules_box.query(
         Rule.vector.nearest_neighbor(vector, element_count=COUNT_ITEMS)
-        & Rule.game.equals(game_name)
+        # & Rule.game.equals(game_name)
     ).build()
 
     results = []
