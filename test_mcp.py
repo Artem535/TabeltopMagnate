@@ -40,6 +40,7 @@ class Terminology:
     internal_id = String
     content = String
     name = String
+    game = String
     slug = String
     kind = String
     path = String
@@ -48,6 +49,14 @@ class Terminology:
     extra = String
     vector = Float32Vector(index=HnswIndex(dimensions=768))
 
+@Entity()
+class Game:
+    id = Id
+    name = String
+    latin_name = String
+    vector = Float32Vector(
+        index = HnswIndex(dimensions=768)
+    )
 
 # ------------------------------------------------------------------
 # Global setup
@@ -57,6 +66,7 @@ server = FastMCP(name="rules-mcp")
 store = Store(directory="./db")
 rules_box = Box(store, entity=Rule)
 terminology_box = Box(store, entity=Terminology)
+game_box = Box(store, entity=Game)
 model = SentenceTransformer("./model")
 
 
@@ -64,8 +74,41 @@ model = SentenceTransformer("./model")
 # Tools – parameters described inline with Annotated[…, Field(…)]
 # ------------------------------------------------------------------
 @server.tool
+def find_games(
+    query: Annotated[str, Field(...)]
+) -> str:
+    """
+    Search for games using vector similarity.
+
+    Parameters
+    ----------
+    query : str
+        Natural-language search query (can be empty).
+    """
+    vector = model.encode(query)
+
+    obx_query = game_box.query(
+        Game.vector.nearest_neighbor(vector, element_count=COUNT_ITEMS)
+    ).build()
+
+    results = []
+    for id_, score in obx_query.find_ids_with_scores():
+        g = game_box.get(id_)
+        results.append(
+            {
+                "id": g.id,
+                "name_db": g.name,
+                "latin_name": g.latin_name,
+                "score": score,
+            }
+        )
+
+    return yaml.safe_dump(results, allow_unicode=True)
+
+
+@server.tool
 def find_in_rulebook(
-    game_name: Annotated[str, Field(...)],
+    db_game_name: Annotated[str, Field(...)],
     section: Annotated[str, Field(...)],
     type_: Annotated[str, Field(...)],
     query: Annotated[str, Field(...)],
@@ -87,12 +130,12 @@ def find_in_rulebook(
     zone : {'base','advanced','edge'}
         Rule zone; defaults to 'base'.
     """
-    search_query = f"#game:{game_name} #section:{section} #type:{type_}\n---\n{query}"
+    search_query = f"#section:{section} #type:{type_}\n---\n{query}"
     vector = model.encode(search_query)
 
     obx_query = rules_box.query(
         Rule.vector.nearest_neighbor(vector, element_count=COUNT_ITEMS)
-        # & Rule.game.equals(game_name)
+        & Rule.game.equals(db_game_name)
     ).build()
 
     results = []
@@ -114,7 +157,7 @@ def find_in_rulebook(
 
 @server.tool
 def find_in_terminology(
-    game_name: Annotated[str, Field(...)],
+    db_game_name: Annotated[str, Field(...)],
     group: Annotated[str, Field(...)] = "default",
     query: Annotated[str, Field(...)] = "",
 ) -> str:
@@ -130,12 +173,13 @@ def find_in_terminology(
     query : str
         Text query for semantic term search.
     """
-    search_query = f"#game:{game_name} #group:{group}\n---\n{query}"
+    search_query = f"#game:{db_game_name} #group:{group}\n---\n{query}"
     vector = model.encode(search_query)
 
     obx_query = terminology_box.query(
         Terminology.vector.nearest_neighbor(vector, element_count=COUNT_ITEMS)
         & Terminology.kind.equals("TERM")
+        & Terminology.game.equals(db_game_name)
     ).build()
 
     results = []
@@ -157,7 +201,7 @@ def find_in_terminology(
 
 @server.tool
 def find_in_terminology_ner(
-    game_name: Annotated[str, Field(...)],
+    db_game_name: Annotated[str, Field(...)],
     group: Annotated[str, Field(...)] = "default",
     query: Annotated[str, Field(...)] = "",
 ) -> str:
@@ -173,12 +217,13 @@ def find_in_terminology_ner(
     query : str
         Text query for semantic term search.
     """
-    search_query = f"#game:{game_name} #group:{group}\n---\n{query}"
+    search_query = f"#group:{group}\n---\n{query}"
     vector = model.encode(search_query)
 
     obx_query = terminology_box.query(
         Terminology.vector.nearest_neighbor(vector, element_count=COUNT_ITEMS)
         & Terminology.kind.equals("ENTITY")
+        & Terminology.game.equals(db_game_name)
     ).build()
 
     results = []
@@ -186,14 +231,12 @@ def find_in_terminology_ner(
         t = terminology_box.get(id_)
         results.append(
             {
-                "id": t.internal_id,
                 "score": score,
                 "content": t.content,
                 "name": t.name,
                 "group": t.group,
                 "definition": t.definition,
-                "extra": yaml.safe_load(t.extra),
-                "kind": t.kind,
+                "extra": yaml.safe_load(t.extra),   
             }
         )
 
@@ -204,4 +247,4 @@ def find_in_terminology_ner(
 # Run the MCP server
 # ------------------------------------------------------------------
 if __name__ == "__main__":
-    server.run("http", port=8000)
+    server.run("http", port=8001)
