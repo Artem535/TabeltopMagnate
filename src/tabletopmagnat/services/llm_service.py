@@ -4,6 +4,7 @@ from uuid import uuid4
 from langfuse import Langfuse
 
 from tabletopmagnat.config.config import Config
+from tabletopmagnat.constants.general import Prompts, NodeNames
 from tabletopmagnat.node.echo_node import EchoNode
 from tabletopmagnat.node.expert_parallel_coordinator_node import (
     ExpertParallelCoordinator,
@@ -121,74 +122,74 @@ class Service:
             RuntimeError: If there is an issue initializing MCP tools.
         """
         self.security_node = SecurityNode(
-            name="security",
+            name=NodeNames.SECURITY,
             llm_service=self.security_llm,
-            prompt_name="security",
+            prompt_name=Prompts.SECURITY,
             dialog_selector=lambda x: x.dialog,
         )
 
-        self.echo_node = EchoNode(name="echo", echo_text="Sorry, but I can't help you.")
+        self.echo_node = EchoNode(name=NodeNames.ECHO, echo_text="Sorry, but I can't help you.")
 
         self.task_splitter_node = TaskSplitterNode(
-            name="task_splitter",
+            name=NodeNames.TASK_SPLITTER,
             llm_service=self.task_splitter_llm,
-            prompt_name="task_splitter",
+            prompt_name=Prompts.TASK_SPLITTER,
             dialog_selector=lambda x: x.dialog,
         )
 
         self.task_classifier_node = TaskClassifierNode(
-            name="task_classifier",
+            name=NodeNames.TASK_CLASSIFIER,
             llm_service=self.task_classifier_llm,
-            prompt_name="task_classifier",
+            prompt_name=Prompts.TASK_CLASSIFIER,
             dialog_selector=lambda x: x.dialog,
         )
 
-        tools = self.get_tools()
+        tools = self.get_tools(self.config.mcp.url)
         _ = await tools.get_tool_list()
         self.expert_1 = await RASG.create_subgraph(
-            name="expert_1",
-            prompt_name="expert_1",
+            name=NodeNames.EXPERT_1,
+            prompt_name=Prompts.EXPERT_1,
             openai_service=self.rasg_llm,
             mcp_tools=tools,
             dialog_selector=lambda x: x.expert_1,
         )
 
         self.expert_2 = await RASG.create_subgraph(
-            name="expert_2",
-            prompt_name="expert_2",
+            name=NodeNames.EXPERT_2,
+            prompt_name=Prompts.EXPERT_2,
             openai_service=self.rasg_llm,
             mcp_tools=tools,
             dialog_selector=lambda x: x.expert_2,
         )
 
         self.expert_3 = await RASG.create_subgraph(
-            name="expert_3",
-            prompt_name="expert_3",
+            name=NodeNames.EXPERT_3,
+            prompt_name=Prompts.EXPERT_3,
             openai_service=self.rasg_llm,
             mcp_tools=tools,
             dialog_selector=lambda x: x.expert_3,
         )
 
         self.expert_parallel_coordinator = ExpertParallelCoordinator(
-            name="expert_parallel_coordinator",
+            name=NodeNames.EXPERT_PARALLEL_COORDINATOR,
             expert_state=ExpertState(
                 expert_1=self.expert_1, expert_2=self.expert_2, expert_3=self.expert_3
             ),
         )
 
-        self.join_node = JoinNode(name="join")
+        self.join_node = JoinNode(name=NodeNames.JOIN)
 
         self.summary_node = LLMNode(
-            name="summary",
-            prompt_name="summary",
+            name=NodeNames.SUMMARY,
+            prompt_name=Prompts.SUMMARY,
             llm_service=self.general_llm,
             dialog_selector=lambda x: x.summary,
         )
 
-        self.switch_node = FromSummaryToMain(name="switch")
+        self.switch_node = FromSummaryToMain(name=NodeNames.SWITCH)
 
     @staticmethod
-    def get_tools() -> MCPTools:
+    def get_tools(mcp_url: str) -> MCPTools:
         """Construct and return a set of external tools (e.g., MCP API).
 
         The method creates a mock MCP server configuration with a bearer token and HTTP transport.
@@ -200,7 +201,7 @@ class Service:
         header = ToolHeader(Authorization="Bearer 1234567890")
         server = MCPServer(
             transport="http",
-            url="http://localhost:8000/mcp",
+            url=mcp_url,
             headers=header,
             auth="bearer",
         )

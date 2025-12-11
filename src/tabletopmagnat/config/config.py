@@ -16,6 +16,7 @@ Classes:
 from pydantic import BaseModel, Field
 
 from tabletopmagnat.config.langfuse import LangfuseSettings
+from tabletopmagnat.config.mcp_tools import MCPSettings
 from tabletopmagnat.config.models import Models
 from tabletopmagnat.config.openai_config import OpenAIConfig
 
@@ -35,3 +36,4 @@ class Config(BaseModel):
     models: Models = Field(default_factory=Models)
     openai: OpenAIConfig = Field(default_factory=OpenAIConfig)
     langfuse: LangfuseSettings = Field(default_factory=LangfuseSettings)
+    mcp: MCPSettings = Field(default_factory=MCPSettings)
