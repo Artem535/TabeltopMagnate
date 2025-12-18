@@ -114,7 +114,7 @@ def find_games(
 
 
 @server.tool
-def get_toc(db_game_name) -> str:
+def get_toc(db_game_name: str) -> str:
     """
     Get table of contents for a specific game by listing all rule sections and scenarios.
 
