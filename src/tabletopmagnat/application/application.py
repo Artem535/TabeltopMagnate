@@ -50,6 +50,7 @@ class Application:
             host=self.config.langfuse.host,
             public_key=self.config.langfuse.public_key,
             secret_key=self.config.langfuse.secret_key,
+            project_id=self.config.langfuse.project_id,
         )
 
         # Service
@@ -220,7 +221,9 @@ class Application:
         if self.flow is None:
             await self.init_flow()
 
-        with self.langfuse.start_as_current_span(name=f"Span:{uuid4()}") as span:
+        first_msg = self.shared_data.dialog.messages[0].content if self.shared_data.dialog.messages else "No message"
+        span_name = f"Request: {first_msg[:50]}{'...' if len(first_msg) > 50 else ''}"
+        with self.langfuse.start_as_current_span(name=span_name) as span:
             span.update(input=self.shared_data.dialog)
 
             await self.flow.run_async(shared=self.shared_data)
@@ -236,7 +239,9 @@ class Application:
         if self.flow is None:
             await self.init_flow()
 
-        with self.langfuse.start_as_current_span(name=f"Span:{uuid4()}") as span:
+        first_msg = self.shared_data.dialog.messages[0].content if self.shared_data.dialog.messages else "No message"
+        span_name = f"Request: {first_msg[:50]}{'...' if len(first_msg) > 50 else ''}"
+        with self.langfuse.start_as_current_span(name=span_name) as span:
             span.update(input=self.shared_data.dialog)
 
             await self.flow.run_async(shared=self.shared_data)

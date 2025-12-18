@@ -36,3 +36,17 @@ class SummaryNode(AbstractNode):
         prev_msg.content = (prev_msg.content or "") + content_suffix
         dialog.add_message(prev_msg)
         return shared
+
+    @observe(as_type="chain")
+    async def exec_async(self, prep_res):
+        name = f"{self._name}:exec"
+        self._lf_client.update_current_span(name=name)
+        # Assuming the preparation returns the shared data, and execution just returns it
+        return prep_res
+
+    @observe(as_type="chain")
+    async def post_async(self, shared, prep_res, exec_res):
+        name = f"{self._name}:post"
+        self._lf_client.update_current_span(name=name)
+        # Post-processing logic if needed, for now pass
+        return "default"
