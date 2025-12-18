@@ -50,7 +50,6 @@ class Application:
             host=self.config.langfuse.host,
             public_key=self.config.langfuse.public_key,
             secret_key=self.config.langfuse.secret_key,
-            project_id=self.config.langfuse.project_id,
         )
 
         # Service
