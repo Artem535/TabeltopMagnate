@@ -1,19 +1,26 @@
-from typing import Literal, Optional, Annotated
+"""
+Test MCP server for tabletop game rules and terminology search.
+
+This module sets up an MCP (Model Context Protocol) server using FastMCP
+to provide tools for searching game rules, terminology, and game data
+using vector similarity search powered by ObjectBox and SentenceTransformers.
+"""
+
+from typing import Annotated
+
 import yaml
 from fastmcp import FastMCP
-from pydantic import Field
-
 from objectbox import (
     Box,
     Entity,
     Float32Vector,
     HnswIndex,
     Id,
+    Int16,
     Store,
     String,
-    VectorDistanceType,
-    Int16,
 )
+from pydantic import Field
 from sentence_transformers import SentenceTransformer
 
 
@@ -22,52 +29,52 @@ from sentence_transformers import SentenceTransformer
 # ------------------------------------------------------------------
 @Entity()
 class Rule:
-    id = Id
-    internal_id = String
-    content = String
-    section = String
-    game = String
-    req_term = String
-    scenario = String
-    priority = Int16
-    zone = String
-    vector = Float32Vector(index=HnswIndex(dimensions=768))
+    id = Id  # Unique identifier for the rule
+    internal_id = String  # Internal unique ID (e.g., from chunking process)
+    content = String  # Full text content of the rule
+    section = String  # Rulebook section (e.g., "movement", "combat")
+    game = String  # Associated game name
+    req_term = String  # YAML string of required terminology terms (list serialized)
+    scenario = String  # Enriched searchable text: tags (#section, #type) + "---" + content; this is encoded for vector search
+    priority = Int16  # Priority level for rule application
+    zone = String  # Rule zone (base/advanced/edge)
+    vector = Float32Vector(index=HnswIndex(dimensions=768))  # 768-dim vector embedding for similarity search (encoded from scenario field)
 
 
 @Entity()
 class Terminology:
-    id = Id
-    internal_id = String
-    content = String
-    name = String
-    game = String
-    slug = String
-    kind = String
-    path = String
-    group = String
-    definition = String
-    extra = String
-    vector = Float32Vector(index=HnswIndex(dimensions=768))
+    id = Id  # Unique identifier
+    internal_id = String  # Internal unique ID
+    content = String  # Enriched searchable text: tags (#group) + "---" + name; this is encoded for vector search
+    name = String  # Display name of the term
+    game = String  # Associated game name
+    slug = String  # URL-friendly identifier
+    kind = String  # Type: "TERM" for definitions, "ENTITY" for named entities
+    path = String  # Path or location in the documentation
+    group = String  # Category or group for the term
+    definition = String  # Definition text
+    extra = String  # YAML string of additional metadata
+    vector = Float32Vector(index=HnswIndex(dimensions=768))  # 768-dim vector embedding for similarity search (encoded from content field)
 
 @Entity()
 class Game:
-    id = Id
-    name = String
-    latin_name = String
+    id = Id  # Unique identifier
+    name = String  # Game name in native script
+    latin_name = String  # Game name in Latin script
     vector = Float32Vector(
-        index = HnswIndex(dimensions=768)
-    )
+        index=HnswIndex(dimensions=768)
+    )  # 768-dim vector embedding for similarity search (encoded from name field)
 
 # ------------------------------------------------------------------
 # Global setup
 # ------------------------------------------------------------------
-COUNT_ITEMS = 3
-server = FastMCP(name="rules-mcp")
-store = Store(directory="./db")
-rules_box = Box(store, entity=Rule)
-terminology_box = Box(store, entity=Terminology)
-game_box = Box(store, entity=Game)
-model = SentenceTransformer("./model")
+COUNT_ITEMS = 3  # Number of nearest neighbors to retrieve in searches
+server = FastMCP(name="rules-mcp")  # Initialize FastMCP server for MCP protocol
+store = Store(directory="./db")  # Open ObjectBox database store in ./db directory
+rules_box = Box(store, entity=Rule)  # Box for storing and querying Rule entities
+terminology_box = Box(store, entity=Terminology)  # Box for storing Terminology entities
+game_box = Box(store, entity=Game)  # Box for storing Game entities
+model = SentenceTransformer("./model")  # Load pre-trained sentence transformer model for encoding text to vectors
 
 
 # ------------------------------------------------------------------
@@ -107,6 +114,25 @@ def find_games(
 
 
 @server.tool
+def get_toc(db_game_name) -> str:
+    """
+    Get table of contents for a specific game by listing all rule sections and scenarios.
+
+    """
+    rules_query = rules_box.query(
+        Rule.game.equals(db_game_name)
+    ).build()
+
+    result = []
+    for res in rules_query.find():
+        result.append({
+          "section":  res.section,
+          "scenario": res.scenario
+        })
+
+    return yaml.safe_dump(result, allow_unicode=True)
+
+@server.tool
 def find_in_rulebook(
     db_game_name: Annotated[str, Field(...)],
     section: Annotated[str, Field(...)],
@@ -119,7 +145,7 @@ def find_in_rulebook(
 
     Parameters
     ----------
-    game_name : str
+    db_game_name : str
         Name of the game (required).
     section : str
         Section of the rulebook;.
@@ -130,9 +156,12 @@ def find_in_rulebook(
     zone : {'base','advanced','edge'}
         Rule zone; defaults to 'base'.
     """
+    # Construct enriched search query by adding metadata tags
     search_query = f"#section:{section} #type:{type_}\n---\n{query}"
+    # Encode the search query to a vector for similarity search
     vector = model.encode(search_query)
 
+    # Build ObjectBox query to find nearest neighbors, filtered by game name
     obx_query = rules_box.query(
         Rule.vector.nearest_neighbor(vector, element_count=COUNT_ITEMS)
         & Rule.game.equals(db_game_name)
@@ -236,7 +265,7 @@ def find_in_terminology_ner(
                 "name": t.name,
                 "group": t.group,
                 "definition": t.definition,
-                "extra": yaml.safe_load(t.extra),   
+                "extra": yaml.safe_load(t.extra),
             }
         )
 
@@ -247,4 +276,5 @@ def find_in_terminology_ner(
 # Run the MCP server
 # ------------------------------------------------------------------
 if __name__ == "__main__":
+    # Start the FastMCP server on HTTP interface at port 8001
     server.run("http", port=8001)
