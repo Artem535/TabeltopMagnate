@@ -1,10 +1,7 @@
-from typing import Any
-from uuid import uuid4
-
 from langfuse import Langfuse
 
 from tabletopmagnat.config.config import Config
-from tabletopmagnat.constants.general import Prompts, NodeNames
+from tabletopmagnat.constants.general import NodeNames, Prompts
 from tabletopmagnat.node.echo_node import EchoNode
 from tabletopmagnat.node.expert_parallel_coordinator_node import (
     ExpertParallelCoordinator,
@@ -22,7 +19,7 @@ from tabletopmagnat.state.private_state import PrivateState
 from tabletopmagnat.structured_output.security import SecurityOutput
 from tabletopmagnat.structured_output.task_classifier import TaskClassifierOutput
 from tabletopmagnat.structured_output.task_splitter import TaskSplitterOutput
-from tabletopmagnat.subgraphs.rags import RASG
+from tabletopmagnat.subgraphs.rasg import RASG
 from tabletopmagnat.types.dialog import Dialog
 from tabletopmagnat.types.messages import UserMessage
 from tabletopmagnat.types.tool import ToolHeader
@@ -104,6 +101,8 @@ class Service:
         self.expert_1: AsyncFlow | None = None
         self.expert_2: AsyncFlow | None = None
         self.expert_3: AsyncFlow | None = None
+        self.clarification_expert: AsyncFlow | None = None
+        self.general_expert: LLMNode | None = None
 
         # Flow
         self.flow: AsyncFlow | None = None
@@ -128,7 +127,9 @@ class Service:
             dialog_selector=lambda x: x.dialog,
         )
 
-        self.echo_node = EchoNode(name=NodeNames.ECHO, echo_text="Sorry, but I can't help you.")
+        self.echo_node = EchoNode(
+            name=NodeNames.ECHO, echo_text="Sorry, but I can't help you."
+        )
 
         self.task_splitter_node = TaskSplitterNode(
             name=NodeNames.TASK_SPLITTER,
@@ -168,6 +169,21 @@ class Service:
             openai_service=self.rasg_llm,
             mcp_tools=tools,
             dialog_selector=lambda x: x.expert_3,
+        )
+
+        self.clarification_expert = await RASG.create_subgraph(
+            name=NodeNames.CLARIFICATION_EXPERT,
+            prompt_name=Prompts.CLARIFICATION_EXPERT,
+            openai_service=self.rasg_llm,
+            mcp_tools=tools,
+            dialog_selector=lambda x: x.dialog,
+        )
+
+        self.general_expert = LLMNode(
+            name=NodeNames.GENERAL_EXPERT,
+            prompt_name=Prompts.GENERAL_EXPERT,
+            llm_service=self.general_llm,
+            dialog_selector=lambda x: x.dialog,
         )
 
         self.expert_parallel_coordinator = ExpertParallelCoordinator(
@@ -224,6 +240,9 @@ class Service:
         self.security_node - "safe" >> self.task_classifier_node
 
         self.task_classifier_node - "explanation" >> self.task_splitter_node
+        self.task_classifier_node - "clarification" >> self.clarification_expert
+        self.task_classifier_node - "general" >> self.general_expert
+
         self.task_splitter_node >> self.expert_parallel_coordinator
         self.expert_parallel_coordinator >> self.join_node
         self.join_node >> self.summary_node
@@ -262,7 +281,11 @@ class Service:
         if self.flow is None:
             await self.init_flow()
 
-        first_msg = self.shared_data.dialog.messages[0].content if self.shared_data.dialog.messages else "No message"
+        first_msg = (
+            self.shared_data.dialog.messages[0].content
+            if self.shared_data.dialog.messages
+            else "No message"
+        )
         span_name = f"Request: {first_msg[:50]}{'...' if len(first_msg) > 50 else ''}"
         with self.langfuse.start_as_current_span(name=span_name) as span:
             span.update(input=self.shared_data.dialog)
@@ -294,7 +317,11 @@ class Service:
         if self.flow is None:
             await self.init_flow()
 
-        first_msg = self.shared_data.dialog.messages[0].content if self.shared_data.dialog.messages else "No message"
+        first_msg = (
+            self.shared_data.dialog.messages[0].content
+            if self.shared_data.dialog.messages
+            else "No message"
+        )
         span_name = f"Request: {first_msg[:50]}{'...' if len(first_msg) > 50 else ''}"
         with self.langfuse.start_as_current_span(name=span_name) as span:
             span.update(input=self.shared_data.dialog)

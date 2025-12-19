@@ -8,7 +8,9 @@ class Prompts(StrEnum):
     EXPERT_1 = "expert_1"
     EXPERT_2 = "expert_2"
     EXPERT_3 = "expert_3"
+    CLARIFICATION_EXPERT = "clarification_expert"
     SUMMARY = "summary"
+    GENERAL_EXPERT = "general"
 
 
 class NodeNames(StrEnum):
@@ -23,3 +25,5 @@ class NodeNames(StrEnum):
     EXPERT_1 = "expert_1"
     EXPERT_2 = "expert_2"
     EXPERT_3 = "expert_3"
+    CLARIFICATION_EXPERT = "clarification_expert"
+    GENERAL_EXPERT = "general"

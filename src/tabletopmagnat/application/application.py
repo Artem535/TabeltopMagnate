@@ -21,7 +21,7 @@ from tabletopmagnat.state.private_state import PrivateState
 from tabletopmagnat.structured_output.security import SecurityOutput
 from tabletopmagnat.structured_output.task_classifier import TaskClassifierOutput
 from tabletopmagnat.structured_output.task_splitter import TaskSplitterOutput
-from tabletopmagnat.subgraphs.rags import RASG
+from tabletopmagnat.subgraphs.rasg import RASG
 from tabletopmagnat.types.dialog import Dialog
 from tabletopmagnat.types.messages import UserMessage
 from tabletopmagnat.types.tool import ToolHeader
