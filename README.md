@@ -1,6 +1,3 @@
-Got it — `PocketFlow` is an external library, not your own. Here's the updated **English README** with `uv` for dependency management and a corrected attribution:
-
----
 
 # 🎲 TabletopMagnat
 
